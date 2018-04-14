@@ -8,6 +8,7 @@ namespace VcProjInspector
   internal class Engine : IEngine
   {
     private List<Inspection> inspections = new List<Inspection>();
+    private List<Defect> defects = new List<Defect>();
 
     private void collectInspections()
     {
@@ -33,5 +34,19 @@ namespace VcProjInspector
       collectInspections();
       runInspections();
     }
+
+    public IReadOnlyCollection<Defect> Defects
+    {
+      get
+      {
+        return defects.AsReadOnly();
+      }
+    }
+
+    public void AddDefect(Defect defect)
+    {
+      defects.Add(defect);
+    }
+
   }
 }

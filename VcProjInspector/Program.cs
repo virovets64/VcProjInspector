@@ -26,6 +26,8 @@ namespace VcProjInspector
     {
       var engine = new Engine();
       engine.Run(options);
+      foreach(var defect in engine.Defects)
+        Console.WriteLine(defect.Description);
       Environment.ExitCode = 0;
     }
 

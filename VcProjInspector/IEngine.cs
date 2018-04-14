@@ -6,5 +6,6 @@ namespace VcProjInspector
 {
   public interface IEngine
   {
+    void AddDefect(Defect defect);
   }
 }

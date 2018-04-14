@@ -9,7 +9,7 @@ namespace VcProjInspector
   {
     protected override void run(IEngine engine)
     {
-      Console.WriteLine("SampleInspection");
+      engine.AddDefect(new Defect { Severity = DefectSeverity.Error, Description = "Sample" });
     }
   }
 }
