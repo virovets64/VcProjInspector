@@ -6,7 +6,7 @@ namespace VcProjInspector
 {
   class Program
   {
-    class Options
+    public class Options
     {
       [Option('d', "dirs", Required = true, HelpText = "directories to scan.")]
       public IEnumerable<string> IncludeDirectories { get; set; }
@@ -24,6 +24,8 @@ namespace VcProjInspector
 
     static void RunOptionsAndReturnExitCode(Options options)
     {
+      var engine = new Engine();
+      engine.Run(options);
       Environment.ExitCode = 0;
     }
 
