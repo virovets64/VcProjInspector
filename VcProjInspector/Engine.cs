@@ -21,7 +21,11 @@ namespace VcProjInspector
       {
         var attribute = type.GetCustomAttribute<InspectionClass>();
         if (attribute != null)
-          inspections.Add((Inspection)Activator.CreateInstance(type));
+        {
+          var inspection = (Inspection)Activator.CreateInstance(type);
+          inspection.Engine = this;
+          inspections.Add(inspection);
+        }
       }
     }
 
@@ -53,7 +57,11 @@ namespace VcProjInspector
       }
       catch (Exception e)
       {
-        AddDefect(new Defect { Path = filename, Description = "Can't open solution: " + e.Message });
+        AddDefect(new Defect
+        {
+          Path = filename,
+          Description = String.Format("Can't open solution file {0}: {1}", filename, e.Message)
+        });
       }
       solutions.Add(filename, solution);
     }
@@ -67,7 +75,11 @@ namespace VcProjInspector
       }
       catch (Exception e)
       {
-        AddDefect(new Defect { Path = filename, Description = "Can't open project: " + e.Message });
+        AddDefect(new Defect
+        {
+          Path = filename,
+          Description = String.Format("Can't open project file {0}: {1}", filename, e.Message)
+        });
       }
       projects.Add(filename, project);
     }
@@ -76,7 +88,7 @@ namespace VcProjInspector
     {
       foreach (var inspection in inspections)
       {
-        inspection.Inspect(this);
+        inspection.Inspect();
       }
     }
 

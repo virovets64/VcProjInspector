@@ -6,11 +6,13 @@ namespace VcProjInspector
 {
   public abstract class Inspection
   {
-    protected abstract void run(IEngine engine);
+    public IEngine Engine { get; internal set; }
 
-    internal void Inspect(IEngine engine)
+    protected abstract void run();
+
+    internal void Inspect()
     {
-      run(engine);
+      run();
     }
   }
 
