@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VcProjInspector", "VcProjInspector\VcProjInspector.csproj", "{8C1360A2-177A-40D6-A7CE-71C5ED586D3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VcProjInspector", "VcProjInspector\VcProjInspector.csproj", "{8C1360A2-177A-40D6-A7CE-71C5ED586D3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InspectorCore", "InspectorCore\InspectorCore.csproj", "{DF0E1065-253D-4DF3-BD02-B5EE3641F643}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{8C1360A2-177A-40D6-A7CE-71C5ED586D3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C1360A2-177A-40D6-A7CE-71C5ED586D3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C1360A2-177A-40D6-A7CE-71C5ED586D3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF0E1065-253D-4DF3-BD02-B5EE3641F643}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF0E1065-253D-4DF3-BD02-B5EE3641F643}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF0E1065-253D-4DF3-BD02-B5EE3641F643}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF0E1065-253D-4DF3-BD02-B5EE3641F643}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
