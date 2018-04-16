@@ -4,8 +4,9 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using Microsoft.Build.Construction;
+using InspectorCore;
 
-namespace VcProjInspector
+namespace CommonInspections
 {
   [InspectionClass]
   class ProjRefInspection : Inspection

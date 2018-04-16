@@ -10,4 +10,8 @@
     <PackageReference Include="Microsoft.Build.Engine" Version="15.6.85" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\InspectorCore\InspectorCore.csproj" />
+  </ItemGroup>
+
   </Project>

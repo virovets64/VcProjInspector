@@ -3,12 +3,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using CommandLine;
 using Microsoft.Build.Construction;
 
-namespace VcProjInspector
+namespace InspectorCore
 {
-  internal class Engine : IEngine
+  public class Engine : IEngine
   {
+    public class Options
+    {
+      [Option('d', "dirs", Required = true, HelpText = "directories to scan.")]
+      public IEnumerable<string> IncludeDirectories { get; set; }
+
+      [Option('x', "exclude_dirs", Required = false, HelpText = "directories to exclude.")]
+      public IEnumerable<string> ExcludeDirectories { get; set; }
+    }
+
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
     private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>();
@@ -29,7 +39,7 @@ namespace VcProjInspector
       }
     }
 
-    private void collectFiles(Program.Options options)
+    private void collectFiles(Options options)
     {
       foreach (var dir in options.IncludeDirectories)
       {
@@ -92,7 +102,7 @@ namespace VcProjInspector
       }
     }
 
-    public void Run(Program.Options options)
+    public void Run(Options options)
     {
       collectInspections();
       collectFiles(options);
