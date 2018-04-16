@@ -4,7 +4,7 @@ using System.Text;
 
 namespace InspectorCore
 {
-  public interface IEngine
+  public interface IContext
   {
     void AddDefect(Defect defect);
 

@@ -8,7 +8,7 @@ using Microsoft.Build.Construction;
 
 namespace InspectorCore
 {
-  public class Engine : IEngine
+  public class Inspector : IContext
   {
     public class Options
     {

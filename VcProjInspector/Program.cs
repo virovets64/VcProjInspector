@@ -9,14 +9,14 @@ namespace VcProjInspector
   {
     static void Main(string[] args)
     {
-      CommandLine.Parser.Default.ParseArguments<Engine.Options>(args)
-        .WithParsed<Engine.Options>(opts => RunOptionsAndReturnExitCode(opts))
-        .WithNotParsed<Engine.Options>((errs) => HandleParseError(errs));
+      CommandLine.Parser.Default.ParseArguments<Inspector.Options>(args)
+        .WithParsed<Inspector.Options>(opts => RunOptionsAndReturnExitCode(opts))
+        .WithNotParsed<Inspector.Options>((errs) => HandleParseError(errs));
     }
 
-    static void RunOptionsAndReturnExitCode(Engine.Options options)
+    static void RunOptionsAndReturnExitCode(Inspector.Options options)
     {
-      var engine = new Engine();
+      var engine = new Inspector();
       engine.Run(options);
       foreach(var defect in engine.Defects)
         Console.WriteLine(defect.Description);
