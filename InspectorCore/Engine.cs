@@ -19,6 +19,7 @@ namespace InspectorCore
       public IEnumerable<string> ExcludeDirectories { get; set; }
     }
 
+    private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
     private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>();
@@ -26,15 +27,18 @@ namespace InspectorCore
 
     private void collectInspections()
     {
-      var types = Assembly.GetExecutingAssembly().GetTypes();
-      foreach (var type in types)
+      foreach(var plugin in plugins)
       {
-        var attribute = type.GetCustomAttribute<InspectionClass>();
-        if (attribute != null)
+        var types = plugin.GetTypes();
+        foreach (var type in types)
         {
-          var inspection = (Inspection)Activator.CreateInstance(type);
-          inspection.Engine = this;
-          inspections.Add(inspection);
+          var attribute = type.GetCustomAttribute<InspectionClass>();
+          if (attribute != null)
+          {
+            var inspection = (Inspection)Activator.CreateInstance(type);
+            inspection.Engine = this;
+            inspections.Add(inspection);
+          }
         }
       }
     }
@@ -104,9 +108,30 @@ namespace InspectorCore
 
     public void Run(Options options)
     {
+      loadPlugins();
       collectInspections();
       collectFiles(options);
       runInspections();
+    }
+
+    private void loadPlugins()
+    {
+      var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Plugins");
+      foreach(var filename in Directory.GetFiles(path, "*.dll"))
+      {
+        try
+        {
+          plugins.Add(Assembly.LoadFrom(filename));
+        }
+        catch (Exception e)
+        {
+          AddDefect(new Defect
+          {
+            Path = filename,
+            Description = String.Format("Can't load plugin {0}: {1}", filename, e.Message)
+          });
+        }
+      }
     }
 
     public IReadOnlyCollection<Defect> Defects
