@@ -14,7 +14,7 @@ namespace CommonInspections
 
     protected override void run()
     {
-      foreach (var solution in Engine.Solutions)
+      foreach (var solution in Context.Solutions)
       {
         foreach (var projectInSolution in solution.Value.ProjectsInOrder)
         {
@@ -35,7 +35,7 @@ namespace CommonInspections
         ProjectRootElement project = findReference(solutionPath, projectPath, parseGuid(projectInSolution.ProjectGuid, solutionPath));
         if(project == null)
         {
-          Engine.AddDefect(new Defect
+          Context.AddDefect(new Defect
           {
             Severity = DefectSeverity.Error,
             Path = solutionPath,
@@ -52,7 +52,7 @@ namespace CommonInspections
             ProjectRootElement refProject = findReference(projectPath, refPath, guid);
             if(refProject == null)
             {
-              Engine.AddDefect(new Defect
+              Context.AddDefect(new Defect
               {
                 Severity = DefectSeverity.Error,
                 Path = projectPath,
@@ -67,7 +67,7 @@ namespace CommonInspections
     private ProjectRootElement findReference(String sourceFile, String refPath, Guid? sourceGuid)
     {
       ProjectRootElement project;
-      if (Engine.Projects.TryGetValue(refPath, out project))
+      if (Context.Projects.TryGetValue(refPath, out project))
       {
         if (project != null)
         {
@@ -77,7 +77,7 @@ namespace CommonInspections
           {
             if (sourceGuid != projGuid)
             {
-              Engine.AddDefect(new Defect
+              Context.AddDefect(new Defect
               {
                 Severity = DefectSeverity.Warning,
                 Path = sourceFile,
@@ -96,7 +96,7 @@ namespace CommonInspections
       Guid result;
       if(Guid.TryParse(input, out result))
         return result;
-      Engine.AddDefect(new Defect
+      Context.AddDefect(new Defect
       {
         Severity = DefectSeverity.Error,
         Path = sourceFile,

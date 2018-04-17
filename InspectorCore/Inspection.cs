@@ -6,7 +6,7 @@ namespace InspectorCore
 {
   public abstract class Inspection
   {
-    public IContext Engine { get; internal set; }
+    public IContext Context { get; internal set; }
 
     protected abstract void run();
 

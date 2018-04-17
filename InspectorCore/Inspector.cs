@@ -36,7 +36,7 @@ namespace InspectorCore
           if (attribute != null)
           {
             var inspection = (Inspection)Activator.CreateInstance(type);
-            inspection.Engine = this;
+            inspection.Context = this;
             inspections.Add(inspection);
           }
         }
