@@ -11,84 +11,144 @@ namespace CommonInspections
   [InspectionClass]
   class ProjRefInspection : Inspection
   {
+    private Dictionary<Guid, String> projectsByGuid = new Dictionary<Guid, String>();
+    private Dictionary<String, Guid> guidsByProjects = new Dictionary<String, Guid>();
+    private Dictionary<String, List<String>> projectRefs = new Dictionary<String, List<String>>();
+    private Dictionary<String, List<String>> solutionRefs = new Dictionary<String, List<String>>();
 
     protected override void run()
     {
-      foreach (var solution in Context.Solutions)
-      {
-        foreach (var projectInSolution in solution.Value.ProjectsInOrder)
-        {
-          if (projectInSolution.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
-          {
-            var projectPath = Path.GetFullPath(projectInSolution.AbsolutePath);
-            inspectProjectInSolution(solution.Key, solution.Value, projectPath, projectInSolution);
-          }
-        }
-      }
+      retrieveProjectGuids();
+      retrieveProjectRefs();
+      retrieveSolutionRefs();
     }
 
-    private void inspectProjectInSolution(String solutionPath, SolutionFile solution,
-                                          String projectPath, ProjectInSolution projectInSolution)
+    private void retrieveProjectGuids()
     {
-      if (Path.GetExtension(projectPath) == ".vcxproj")
+      foreach (var (projectPath, project) in Context.Projects.Where(x => x.Value != null))
       {
-        ProjectRootElement project = findReference(solutionPath, projectPath, parseGuid(projectInSolution.ProjectGuid, solutionPath));
-        if(project == null)
+        var guidProperty = project.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
+        if(guidProperty != null)
         {
-          Context.AddDefect(new Defect
+          Guid? guid = parseGuid(guidProperty.Value, projectPath);
+          if (guid.HasValue)
           {
-            Severity = DefectSeverity.Error,
-            Path = solutionPath,
-            Description = String.Format("Solution {0} references project file {1} which doesn't exist", solutionPath, projectPath)
-          });
-        }
-        else
-        { 
-          foreach (var reference in project.Items.Where(x => x.ItemType == "ProjectReference"))
-          {
-            var refPath = Path.GetFullPath(Path.Combine(project.DirectoryPath, reference.Include));
-            var projectGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
-            Guid? guid = projectGuidElement == null ? null : parseGuid(projectGuidElement.Value, projectPath);
-            ProjectRootElement refProject = findReference(projectPath, refPath, guid);
-            if(refProject == null)
+            string anotherProjectPath;
+            if(projectsByGuid.TryGetValue(guid.Value, out anotherProjectPath))
             {
               Context.AddDefect(new Defect
               {
                 Severity = DefectSeverity.Error,
-                Path = projectPath,
-                Description = String.Format("Project {0} references project file {1} which doesn't exist", projectPath, refPath)
+                Description = String.Format("Projects {0} and {1} have the same GUID", projectPath, anotherProjectPath)
               });
+            }
+            else
+            {
+              projectsByGuid[guid.Value] = projectPath;
+            }
+            guidsByProjects[projectPath] = guid.Value;
+          }
+        }
+        else
+        {
+          Context.AddDefect(new Defect
+          {
+            Severity = DefectSeverity.Warning,
+            Description = String.Format("Project {0} has no ProjectGuid property", projectPath)
+          });
+        }
+      }
+    }
+
+    private void retrieveProjectRefs()
+    {
+      foreach (var (projectPath, project) in Context.Projects.Where(x => x.Value != null))
+      {
+        var thisProjectRefs = new List<string>();
+        projectRefs[projectPath] = thisProjectRefs;
+        foreach (var reference in project.Items.Where(x => x.ItemType == "ProjectReference"))
+        {
+          var refPath = Path.GetFullPath(Path.Combine(project.DirectoryPath, reference.Include));
+
+          if (Context.Projects.ContainsKey(refPath))
+          {
+            thisProjectRefs.Add(refPath);
+            var refGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
+            Guid? refGuid = refGuidElement == null ? null : parseGuid(refGuidElement.Value, projectPath);
+            Guid? projGuid = getProjectGuid(refPath);
+            if (projGuid != refGuid)
+            {
+              Context.AddDefect(new Defect
+              {
+                Severity = DefectSeverity.Warning,
+                Description = String.Format("GUID {0} in the reference from {1} doesn't match GUID {2} of project {3}",
+                  refGuid.Value, projectPath, projGuid, refPath)
+              });
+            }
+          }
+          else
+          {
+            Context.AddDefect(new Defect
+            {
+              Severity = DefectSeverity.Error,
+              Path = projectPath,
+              Description = String.Format("Project {0} references project file {1} which doesn't exist", projectPath, refPath)
+            });
+          }
+        }
+      }
+    }
+
+    private void retrieveSolutionRefs()
+    {
+      foreach (var (solutionPath, solution) in Context.Solutions.Where(x => x.Value != null))
+      {
+        var thisSolutionRefs = new List<string>();
+        solutionRefs[solutionPath] = thisSolutionRefs;
+
+        foreach (var projectInSolution in solution.ProjectsInOrder)
+        {
+          if (projectInSolution.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
+          {
+            var refPath = Path.GetFullPath(projectInSolution.AbsolutePath);
+            if(Path.GetExtension(refPath) == ".vcxproj")
+            {
+              if (Context.Projects.ContainsKey(refPath))
+              {
+                thisSolutionRefs.Add(refPath);
+                Guid? refGuid = parseGuid(projectInSolution.ProjectGuid, solutionPath);
+                Guid? projGuid = getProjectGuid(refPath);
+                if (projGuid != refGuid)
+                {
+                  Context.AddDefect(new Defect
+                  {
+                    Severity = DefectSeverity.Warning,
+                    Description = String.Format("GUID {0} in the reference from {1} doesn't match GUID {2} of project {3}",
+                      refGuid.Value, solutionPath, projGuid, refPath)
+                  });
+                }
+              }
+              else
+              {
+                Context.AddDefect(new Defect
+                {
+                  Severity = DefectSeverity.Error,
+                  Path = solutionPath,
+                  Description = String.Format("Solution {0} references project file {1} which doesn't exist", solutionPath, refPath)
+                });
+              }
             }
           }
         }
       }
     }
 
-    private ProjectRootElement findReference(String sourceFile, String refPath, Guid? sourceGuid)
+    private Guid? getProjectGuid(String projectPath)
     {
-      ProjectRootElement project;
-      if (Context.Projects.TryGetValue(refPath, out project))
-      {
-        if (project != null)
-        {
-          var guidProperty = project.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
-          Guid? projGuid = guidProperty == null ? null : parseGuid(guidProperty.Value, refPath);
-          if (sourceGuid.HasValue && projGuid.HasValue)
-          {
-            if (sourceGuid != projGuid)
-            {
-              Context.AddDefect(new Defect
-              {
-                Severity = DefectSeverity.Warning,
-                Path = sourceFile,
-                Description = String.Format("GUID {0} in the reference from {1} doesn't match GUID {2} of project {3}",
-                  sourceGuid, sourceFile, projGuid, refPath)
-              });
-            }
-          }
-        }
-      }
-      return project;
+      Guid projGuid;
+      if (guidsByProjects.TryGetValue(projectPath, out projGuid))
+        return projGuid;
+      return null;
     }
 
     private Guid? parseGuid(String input, String sourceFile)
