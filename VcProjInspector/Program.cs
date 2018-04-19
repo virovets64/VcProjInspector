@@ -16,10 +16,9 @@ namespace VcProjInspector
 
     static void RunOptionsAndReturnExitCode(Inspector.Options options)
     {
-      var engine = new Inspector();
-      engine.Run(options);
-      foreach(var defect in engine.Defects)
-        Console.WriteLine(defect.Description);
+      var inspector = new Inspector();
+      inspector.AddLogger(new ConsoleLogger());
+      inspector.Run(options);
       Environment.ExitCode = 0;
     }
 

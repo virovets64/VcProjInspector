@@ -4,7 +4,7 @@ using System.Text;
 
 namespace InspectorCore
 {
-  public enum DefectSeverity { Warning, Error };
+  public enum DefectSeverity { Warning, Error, Internal };
 
   public class Defect
   {

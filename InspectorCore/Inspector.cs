@@ -24,6 +24,7 @@ namespace InspectorCore
     private List<Defect> defects = new List<Defect>();
     private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>();
     private Dictionary<String, ProjectRootElement> projects = new Dictionary<String, ProjectRootElement>();
+    private List<ILogger> loggers = new List<ILogger>();
 
     private void collectInspections()
     {
@@ -73,8 +74,9 @@ namespace InspectorCore
       {
         AddDefect(new Defect
         {
+          Severity = DefectSeverity.Error,
           Path = filename,
-          Description = String.Format("Can't open solution file {0}: {1}", filename, e.Message)
+          Description = String.Format(SDefect.SolutionOpenFailure, filename, e.Message)
         });
       }
       solutions.Add(filename, solution);
@@ -91,8 +93,9 @@ namespace InspectorCore
       {
         AddDefect(new Defect
         {
+          Severity = DefectSeverity.Error,
           Path = filename,
-          Description = String.Format("Can't open project file {0}: {1}", filename, e.Message)
+          Description = String.Format(SDefect.ProjectOpenFailure, filename, e.Message)
         });
       }
       projects.Add(filename, project);
@@ -104,14 +107,6 @@ namespace InspectorCore
       {
         inspection.Inspect();
       }
-    }
-
-    public void Run(Options options)
-    {
-      loadPlugins();
-      collectInspections();
-      collectFiles(options);
-      runInspections();
     }
 
     private void loadPlugins()
@@ -127,8 +122,9 @@ namespace InspectorCore
         {
           AddDefect(new Defect
           {
+            Severity = DefectSeverity.Internal,
             Path = filename,
-            Description = String.Format("Can't load plugin {0}: {1}", filename, e.Message)
+            Description = String.Format(SDefect.PluginLoadFailure, filename, e.Message)
           });
         }
       }
@@ -145,6 +141,15 @@ namespace InspectorCore
     public void AddDefect(Defect defect)
     {
       defects.Add(defect);
+      foreach (var logger in loggers)
+        logger.LogDefect(defect);
+    }
+
+    public void LogMessage(MessageImportance importance, String format, params object[] args)
+    {
+      var text = String.Format(format, args);
+      foreach (var logger in loggers)
+        logger.LogMessage(importance, text);
     }
 
     public IReadOnlyDictionary<String, SolutionFile> Solutions
@@ -161,6 +166,29 @@ namespace InspectorCore
       {
         return projects;
       }
+    }
+
+    public void AddLogger(ILogger logger)
+    {
+      loggers.Add(logger);
+    }
+
+    public void RemoveLogger(ILogger logger)
+    {
+      loggers.Remove(logger);
+    }
+
+    public void Run(Options options)
+    {
+      LogMessage(MessageImportance.High, SMessage.LoadingInspections);
+      loadPlugins();
+      collectInspections();
+
+      LogMessage(MessageImportance.High, SMessage.LoadingProjects);
+      collectFiles(options);
+
+      LogMessage(MessageImportance.High, SMessage.RunningInspections);
+      runInspections();
     }
   }
 }

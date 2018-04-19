@@ -15,4 +15,28 @@
     <PackageReference Include="Microsoft.Build.Engine" Version="15.6.85" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="SDefect.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SDefect.resx</DependentUpon>
+    </Compile>
+    <Compile Update="SMessage.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SMessage.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="SDefect.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SDefect.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="SMessage.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SMessage.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
   </Project>
