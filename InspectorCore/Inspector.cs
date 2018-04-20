@@ -8,7 +8,7 @@ using Microsoft.Build.Construction;
 
 namespace InspectorCore
 {
-  public class Inspector : IContext
+  public class Inspector : IContext, IDisposable
   {
     public class Options
     {
@@ -17,6 +17,9 @@ namespace InspectorCore
 
       [Option('x', "exclude_dirs", Required = false, HelpText = "directories to exclude.")]
       public IEnumerable<string> ExcludeDirectories { get; set; }
+
+      [Option('o', "output_dir", Default = ".", Required = false, HelpText = "output directory.")]
+      public string OutputDirectory { get; set; }
     }
 
     [DefectClass(Code = "A1", Severity = DefectSeverity.Internal)]
@@ -198,6 +201,12 @@ namespace InspectorCore
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
+    }
+
+    public void Dispose()
+    {
+      foreach (var logger in loggers)
+        logger.Dispose();
     }
   }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using InspectorCore;
+using System.IO;
 
 namespace VcProjInspector
 {
@@ -16,9 +17,12 @@ namespace VcProjInspector
 
     static void RunOptionsAndReturnExitCode(Inspector.Options options)
     {
-      var inspector = new Inspector();
-      inspector.AddLogger(new ConsoleLogger());
-      inspector.Run(options);
+      using (var inspector = new Inspector())
+      {
+        inspector.AddLogger(new ConsoleLogger());
+        inspector.AddLogger(new CsvLogger(Path.Combine(options.OutputDirectory, "Defect.csv")));
+        inspector.Run(options);
+      }
       Environment.ExitCode = 0;
     }
 

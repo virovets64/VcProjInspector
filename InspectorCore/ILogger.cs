@@ -4,7 +4,7 @@ using System.Text;
 
 namespace InspectorCore
 {
-  public interface ILogger
+  public interface ILogger : IDisposable
   {
     void LogDefect(Defect defect);
     void LogMessage(MessageImportance importance, String text);

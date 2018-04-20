@@ -36,6 +36,7 @@ namespace VcProjInspector
       Console.WriteLine(text);
       Console.ForegroundColor = oldColor;
     }
-
+    public void Dispose()
+    { }
   }
 }
