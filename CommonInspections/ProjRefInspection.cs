@@ -11,6 +11,78 @@ namespace CommonInspections
   [InspectionClass]
   class ProjRefInspection : Inspection
   {
+    [DefectClass(Code = "B1", Severity = DefectSeverity.Warning)]
+    private class Defect_ProjectHasNoGuid : Defect
+    {
+      public Defect_ProjectHasNoGuid(String filename) :
+        base(filename, 0, SDefect.ProjectHasNoGuid)
+      { }
+    }
+
+    [DefectClass(Code = "B2", Severity = DefectSeverity.Warning)]
+    private class Defect_ProjectGuidIsDuplicated : Defect
+    {
+      public Defect_ProjectGuidIsDuplicated(ElementLocation location, String targetProject, Guid guid) :
+        base(location.File, location.Line, String.Format(SDefect.ProjectGuidDuplicate, guid, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B3", Severity = DefectSeverity.Error)]
+    private class Defect_ProjectRefBroken : Defect
+    {
+      public Defect_ProjectRefBroken(ElementLocation location, String targetProject) :
+        base(location.File, location.Line, String.Format(SDefect.ProjectRefBroken, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B4", Severity = DefectSeverity.Error)]
+    private class Defect_ProjectRefDuplicate : Defect
+    {
+      public Defect_ProjectRefDuplicate(ElementLocation location, String targetProject) :
+        base(location.File, location.Line, String.Format(SDefect.ProjectRefDuplicate, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B5", Severity = DefectSeverity.Error)]
+    private class Defect_ProjectGuidMismatch : Defect
+    {
+      public Defect_ProjectGuidMismatch(String filename, int line, String targetProject, Guid? refGuid, Guid? targetGuid) :
+        base(filename, line, String.Format(SDefect.ProjectGuidMismatch, refGuid, targetGuid, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B6", Severity = DefectSeverity.Error)]
+    private class Defect_SolutiontRefBroken : Defect
+    {
+      public Defect_SolutiontRefBroken(String filename, String targetProject) :
+        base(filename, 0, String.Format(SDefect.SolutionRefBroken, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B7", Severity = DefectSeverity.Error)]
+    private class Defect_SolutionRefDuplicate : Defect
+    {
+      public Defect_SolutionRefDuplicate(String filename, String targetProject) :
+        base(filename, 0, String.Format(SDefect.SolutionRefDuplicate, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B8", Severity = DefectSeverity.Warning)]
+    private class Defect_SolutionGuidMismatch : Defect
+    {
+      public Defect_SolutionGuidMismatch(String filename, String targetProject, Guid? refGuid, Guid? targetGuid) :
+        base(filename, 0, String.Format(SDefect.SolutionGuidMismatch, refGuid, targetGuid, targetProject))
+      { }
+    }
+
+    [DefectClass(Code = "B9", Severity = DefectSeverity.Error)]
+    private class Defect_GuidStringInvalid : Defect
+    {
+      public Defect_GuidStringInvalid(String filename, String guid) :
+        base(filename, 0, String.Format(SDefect.GuidStringInvalid, guid))
+      { }
+    }
+
     class ProjectExtra
     {
       public String Path;
@@ -70,11 +142,7 @@ namespace CommonInspections
         var guidProperty = project.RootElement.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
         if(guidProperty == null)
         {
-          Context.AddDefect(new Defect
-          {
-            Severity = DefectSeverity.Warning,
-            Description = String.Format("Project {0} has no ProjectGuid property", project.Path)
-          });
+          Context.AddDefect(new Defect_ProjectHasNoGuid(project.Path));
         }
         else
         {
@@ -84,11 +152,7 @@ namespace CommonInspections
             var anotherProject = findProjectById(guid.Value);
             if (anotherProject != null)
             {
-              Context.AddDefect(new Defect
-              {
-                Severity = DefectSeverity.Error,
-                Description = String.Format("Projects {0} and {1} have the same GUID", project.Path, anotherProject.Path)
-              });
+              Context.AddDefect(new Defect_ProjectGuidIsDuplicated(guidProperty.Location, anotherProject.Path, guid.Value));
             }
             else
             {
@@ -110,35 +174,21 @@ namespace CommonInspections
           var refProject = findProjectByPath(refPath);
           if (refProject == null)
           {
-            Context.AddDefect(new Defect
-            {
-              Severity = DefectSeverity.Error,
-              Path = project.Path,
-              Description = String.Format("Project {0} references project file {1} which doesn't exist", project.Path, refPath)
-            });
+            Context.AddDefect(new Defect_ProjectRefBroken(reference.Location, refPath));
           }
           else if (project.References.Contains(refProject))
           {
-            Context.AddDefect(new Defect
-            {
-              Severity = DefectSeverity.Error,
-              Description = String.Format("Project {0} in referenced twice from project {1}",
-                refProject.Path, project.Path)
-            });
+            Context.AddDefect(new Defect_ProjectRefDuplicate(reference.Location, refPath));
           }
           else
           {
             project.References.Add(refProject);
             var refGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
             Guid? refGuid = refGuidElement == null ? null : parseGuid(refGuidElement.Value, project.Path);
+            int line = refGuidElement == null ? 0 : refGuidElement.Location.Line;
             if (refProject.Id != refGuid)
             {
-              Context.AddDefect(new Defect
-              {
-                Severity = DefectSeverity.Warning,
-                Description = String.Format("GUID {0} in the reference from {1} doesn't match GUID {2} of project {3}",
-                  refGuid.Value, project.Path, refProject.Id, refProject.Path)
-              });
+              Context.AddDefect(new Defect_ProjectGuidMismatch(project.Path, line, refProject.Path, refGuid, refProject.Id));
             }
           }
         }
@@ -159,21 +209,11 @@ namespace CommonInspections
               var refProject = findProjectByPath(refPath);
               if (refProject == null)
               {
-                Context.AddDefect(new Defect
-                {
-                  Severity = DefectSeverity.Error,
-                  Path = solution.Path,
-                  Description = String.Format("Solution {0} references project file {1} which doesn't exist", solution.Path, refPath)
-                });
+                Context.AddDefect(new Defect_SolutiontRefBroken(solution.Path, refPath));
               }
               else if (solution.References.Contains(refProject))
               {
-                Context.AddDefect(new Defect
-                {
-                  Severity = DefectSeverity.Error,
-                  Description = String.Format("Project {0} in referenced twice from solution {1}",
-                    refProject.Path, solution.Path)
-                });
+                Context.AddDefect(new Defect_SolutionRefDuplicate(solution.Path, refProject.Path));
               }
               else
               {
@@ -181,12 +221,7 @@ namespace CommonInspections
                 Guid? refGuid = parseGuid(projectInSolution.ProjectGuid, solution.Path);
                 if (refProject.Id != refGuid)
                 {
-                  Context.AddDefect(new Defect
-                  {
-                    Severity = DefectSeverity.Warning,
-                    Description = String.Format("GUID {0} in the reference from {1} doesn't match GUID {2} of project {3}",
-                      refGuid.Value, solution.Path, refProject.Id, refPath)
-                  });
+                  Context.AddDefect(new Defect_SolutionGuidMismatch(solution.Path, refPath, refGuid, refProject.Id));
                 }
               }
             }
@@ -200,12 +235,7 @@ namespace CommonInspections
       Guid result;
       if(Guid.TryParse(input, out result))
         return result;
-      Context.AddDefect(new Defect
-      {
-        Severity = DefectSeverity.Error,
-        Path = sourceFile,
-        Description = String.Format("File {0} contains string {1} which is not a valid GUID format", sourceFile, input)
-      });
+      Context.AddDefect(new Defect_GuidStringInvalid(sourceFile, input));
       return null;
     }
   }

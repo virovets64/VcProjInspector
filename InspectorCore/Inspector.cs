@@ -19,6 +19,30 @@ namespace InspectorCore
       public IEnumerable<string> ExcludeDirectories { get; set; }
     }
 
+    [DefectClass(Code = "A1", Severity = DefectSeverity.Internal)]
+    private class Defect_PluginLoadFailure : Defect
+    {
+      public Defect_PluginLoadFailure(String filename, String errorMessage) :
+        base(filename, 0, String.Format(SDefect.PluginLoadFailure, errorMessage))
+      { }
+    }
+
+    [DefectClass(Code = "A2", Severity = DefectSeverity.Error)]
+    private class Defect_SolutionOpenFailure : Defect
+    {
+      public Defect_SolutionOpenFailure(String filename, String errorMessage) :
+        base(filename, 0, String.Format(SDefect.SolutionOpenFailure, errorMessage))
+      { }
+    }
+
+    [DefectClass(Code = "A3", Severity = DefectSeverity.Error)]
+    private class Defect_ProjectOpenFailure : Defect
+    {
+      public Defect_ProjectOpenFailure(String filename, String errorMessage) :
+        base(filename, 0, String.Format(SDefect.ProjectOpenFailure, errorMessage))
+      { }
+    }
+
     private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
@@ -72,12 +96,7 @@ namespace InspectorCore
       }
       catch (Exception e)
       {
-        AddDefect(new Defect
-        {
-          Severity = DefectSeverity.Error,
-          Path = filename,
-          Description = String.Format(SDefect.SolutionOpenFailure, filename, e.Message)
-        });
+        AddDefect(new Defect_SolutionOpenFailure(filename, e.Message));
       }
       solutions.Add(filename, solution);
     }
@@ -91,12 +110,7 @@ namespace InspectorCore
       }
       catch (Exception e)
       {
-        AddDefect(new Defect
-        {
-          Severity = DefectSeverity.Error,
-          Path = filename,
-          Description = String.Format(SDefect.ProjectOpenFailure, filename, e.Message)
-        });
+        AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
       }
       projects.Add(filename, project);
     }
@@ -120,12 +134,7 @@ namespace InspectorCore
         }
         catch (Exception e)
         {
-          AddDefect(new Defect
-          {
-            Severity = DefectSeverity.Internal,
-            Path = filename,
-            Description = String.Format(SDefect.PluginLoadFailure, filename, e.Message)
-          });
+          AddDefect(new Defect_PluginLoadFailure(filename, e.Message));
         }
       }
     }

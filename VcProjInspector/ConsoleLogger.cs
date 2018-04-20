@@ -25,7 +25,7 @@ namespace VcProjInspector
     {
       var oldColor = Console.ForegroundColor;
       Console.ForegroundColor = defectColors[defect.Severity];
-      Console.WriteLine(defect.Description);
+      Console.WriteLine(defect.ToString());
       Console.ForegroundColor = oldColor;
     }
 

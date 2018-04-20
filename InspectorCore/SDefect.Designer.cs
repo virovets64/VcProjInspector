@@ -61,7 +61,7 @@ namespace InspectorCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t load plugin {0}: {1}.
+        ///   Looks up a localized string similar to Can&apos;t load plugin: {0}.
         /// </summary>
         internal static string PluginLoadFailure {
             get {
@@ -70,7 +70,7 @@ namespace InspectorCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t open project file {0}: {1}.
+        ///   Looks up a localized string similar to Can&apos;t open project file: {0}.
         /// </summary>
         internal static string ProjectOpenFailure {
             get {
@@ -79,7 +79,7 @@ namespace InspectorCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t open solution file {0}: {1}.
+        ///   Looks up a localized string similar to Can&apos;t open solution file: {0}.
         /// </summary>
         internal static string SolutionOpenFailure {
             get {

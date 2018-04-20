@@ -117,13 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="PluginLoadFailure" xml:space="preserve">
-    <value>Can't load plugin: {0}</value>
+  <data name="GuidStringInvalid" xml:space="preserve">
+    <value>String {0} is not a valid GUID</value>
   </data>
-  <data name="ProjectOpenFailure" xml:space="preserve">
-    <value>Can't open project file: {0}</value>
+  <data name="ProjectGuidDuplicate" xml:space="preserve">
+    <value>Project GUID {0} duplicates the GUID of {1} project</value>
   </data>
-  <data name="SolutionOpenFailure" xml:space="preserve">
-    <value>Can't open solution file: {0}</value>
+  <data name="ProjectGuidMismatch" xml:space="preserve">
+    <value>GUID {0} in the reference doesn't match GUID {1} of project {2}</value>
+  </data>
+  <data name="ProjectHasNoGuid" xml:space="preserve">
+    <value>Project has no ProjectGuid property</value>
+  </data>
+  <data name="ProjectRefBroken" xml:space="preserve">
+    <value>Project references nonexistent project file {0}</value>
+  </data>
+  <data name="ProjectRefDuplicate" xml:space="preserve">
+    <value>Project {0} in referenced twice</value>
+  </data>
+  <data name="SolutionGuidMismatch" xml:space="preserve">
+    <value>GUID {0} in the reference doesn't match GUID {1} of project {2}</value>
+  </data>
+  <data name="SolutionRefBroken" xml:space="preserve">
+    <value>Solution references nonexistent project file {0}</value>
+  </data>
+  <data name="SolutionRefDuplicate" xml:space="preserve">
+    <value>Project {0} in referenced twice from solution</value>
   </data>
 </root>
