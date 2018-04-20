@@ -70,6 +70,15 @@ namespace CommonInspections {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Solution doesn&apos;t contain project {0} which is referenced by project {1}.
+        /// </summary>
+        internal static string MissingProject {
+            get {
+                return ResourceManager.GetString("MissingProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project GUID {0} duplicates the GUID of {1} project.
         /// </summary>
         internal static string ProjectGuidDuplicate {

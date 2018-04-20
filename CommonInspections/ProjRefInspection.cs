@@ -83,6 +83,14 @@ namespace CommonInspections
       { }
     }
 
+    [DefectClass(Code = "B10", Severity = DefectSeverity.Error)]
+    private class Defect_MissingProject : Defect
+    {
+      public Defect_MissingProject(String filename, String srcProj, String dstProj) :
+        base(filename, 0, String.Format(SDefect.MissingProject, dstProj, srcProj))
+      { }
+    }
+
     class ProjectExtra
     {
       public String Path;
@@ -124,6 +132,7 @@ namespace CommonInspections
       retrieveProjectGuids();
       retrieveProjectRefs();
       retrieveSolutionRefs();
+      detectMissingProjectsInSolutions();
     }
 
     private void prepareExtras()
@@ -238,5 +247,15 @@ namespace CommonInspections
       Context.AddDefect(new Defect_GuidStringInvalid(sourceFile, input));
       return null;
     }
+
+    private void detectMissingProjectsInSolutions()
+    {
+      foreach (var solution in solutions.Where(x => x.Solution != null))
+        foreach (var project in solution.References.Where(x => x.RootElement != null))
+          foreach (var referencedProject in project.References)
+            if(!solution.References.Contains(referencedProject))
+              Context.AddDefect(new Defect_MissingProject(solution.Path, project.Path, referencedProject.Path));
+    }
+
   }
 }
