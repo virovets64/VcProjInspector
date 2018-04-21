@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -63,6 +64,7 @@ namespace InspectorCore
           var attribute = type.GetCustomAttribute<InspectionClass>();
           if (attribute != null)
           {
+            LogMessage(MessageImportance.Low, SMessage.CreatingInspection, type.Name);
             var inspection = (Inspection)Activator.CreateInstance(type);
             inspection.Context = this;
             inspections.Add(inspection);
@@ -73,6 +75,7 @@ namespace InspectorCore
 
     private void collectFiles(Options options)
     {
+      LogMessage(MessageImportance.Normal, SMessage.CollectingFiles);
       foreach (var dir in options.IncludeDirectories)
       {
         foreach (var filename in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
@@ -95,6 +98,7 @@ namespace InspectorCore
       SolutionFile solution = null;
       try
       {
+        LogMessage(MessageImportance.Low, SMessage.OpeningSolution, filename);
         solution = SolutionFile.Parse(filename);
       }
       catch (Exception e)
@@ -109,6 +113,7 @@ namespace InspectorCore
       ProjectRootElement project = null;
       try
       {
+        LogMessage(MessageImportance.Low, SMessage.OpeningProject, filename);
         project = ProjectRootElement.Open(filename);
       }
       catch (Exception e)
@@ -122,6 +127,7 @@ namespace InspectorCore
     {
       foreach (var inspection in inspections)
       {
+        LogMessage(MessageImportance.Low, SMessage.RunningInspection, inspection.GetType().Name);
         inspection.Inspect();
       }
     }
@@ -133,6 +139,7 @@ namespace InspectorCore
       {
         try
         {
+          LogMessage(MessageImportance.Normal, SMessage.LoadingPlugin, filename);
           plugins.Add(Assembly.LoadFrom(filename));
         }
         catch (Exception e)
@@ -201,6 +208,14 @@ namespace InspectorCore
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
+
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Plugins loaded: ", plugins.Count);
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Inspections run: ", inspections.Count);
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", solutions.Count(x => x.Value != null));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", projects.Count(x => x.Value != null));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Defects found: ", defects.Count);
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Errors: ", defects.Count(x => x.Severity != DefectSeverity.Error));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));
     }
 
     public void Dispose()

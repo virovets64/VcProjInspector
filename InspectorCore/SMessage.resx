@@ -117,11 +117,32 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CollectingFiles" xml:space="preserve">
+    <value>Collecting files...</value>
+  </data>
+  <data name="CreatingInspection" xml:space="preserve">
+    <value>Creating inspection {0}...</value>
+  </data>
   <data name="LoadingInspections" xml:space="preserve">
     <value>Loading inspections...</value>
   </data>
+  <data name="LoadingPlugin" xml:space="preserve">
+    <value>Loading plugin {0}...</value>
+  </data>
   <data name="LoadingProjects" xml:space="preserve">
     <value>Loading solutions and projects...</value>
+  </data>
+  <data name="NameValue" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OpeningProject" xml:space="preserve">
+    <value>Opening project {0}...</value>
+  </data>
+  <data name="OpeningSolution" xml:space="preserve">
+    <value>Opening solution {0}...</value>
+  </data>
+  <data name="RunningInspection" xml:space="preserve">
+    <value>Running inspection {0}...</value>
   </data>
   <data name="RunningInspections" xml:space="preserve">
     <value>Running inspections...</value>

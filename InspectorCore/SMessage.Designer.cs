@@ -61,6 +61,24 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collecting files....
+        /// </summary>
+        internal static string CollectingFiles {
+            get {
+                return ResourceManager.GetString("CollectingFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Creating inspection {0}....
+        /// </summary>
+        internal static string CreatingInspection {
+            get {
+                return ResourceManager.GetString("CreatingInspection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading inspections....
         /// </summary>
         internal static string LoadingInspections {
@@ -70,11 +88,56 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Loading plugin {0}....
+        /// </summary>
+        internal static string LoadingPlugin {
+            get {
+                return ResourceManager.GetString("LoadingPlugin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading solutions and projects....
         /// </summary>
         internal static string LoadingProjects {
             get {
                 return ResourceManager.GetString("LoadingProjects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: {1}.
+        /// </summary>
+        internal static string NameValue {
+            get {
+                return ResourceManager.GetString("NameValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Opening project {0}....
+        /// </summary>
+        internal static string OpeningProject {
+            get {
+                return ResourceManager.GetString("OpeningProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Opening solution {0}....
+        /// </summary>
+        internal static string OpeningSolution {
+            get {
+                return ResourceManager.GetString("OpeningSolution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Running inspection {0}....
+        /// </summary>
+        internal static string RunningInspection {
+            get {
+                return ResourceManager.GetString("RunningInspection", resourceCulture);
             }
         }
         
