@@ -10,12 +10,12 @@ namespace VcProjInspector
   {
     static void Main(string[] args)
     {
-      CommandLine.Parser.Default.ParseArguments<Inspector.Options>(args)
-        .WithParsed<Inspector.Options>(opts => RunOptionsAndReturnExitCode(opts))
-        .WithNotParsed<Inspector.Options>((errs) => HandleParseError(errs));
+      CommandLine.Parser.Default.ParseArguments<InspectorOptions>(args)
+        .WithParsed<InspectorOptions>(opts => RunOptionsAndReturnExitCode(opts))
+        .WithNotParsed<InspectorOptions>((errs) => HandleParseError(errs));
     }
 
-    static void RunOptionsAndReturnExitCode(Inspector.Options options)
+    static void RunOptionsAndReturnExitCode(InspectorOptions options)
     {
       using (var inspector = new Inspector())
       {

@@ -25,5 +25,10 @@ namespace InspectorCore
     {
       get;
     }
+
+    InspectorOptions Options
+    {
+      get;
+    }
   }
 }

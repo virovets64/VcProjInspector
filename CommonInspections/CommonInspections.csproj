@@ -10,11 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.2.1" />
     <PackageReference Include="Microsoft.Build" Version="15.6.85" />
     <PackageReference Include="Microsoft.Build.Engine" Version="15.6.85" />
+    <PackageReference Include="CsvHelper" Version="7.1.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\InspectorCore\InspectorCore.csproj">
       <Private>false</Private>

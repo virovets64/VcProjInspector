@@ -9,20 +9,20 @@ using Microsoft.Build.Construction;
 
 namespace InspectorCore
 {
+  public class InspectorOptions
+  {
+    [Option('d', "dirs", Required = true, HelpText = "directories to scan.")]
+    public IEnumerable<string> IncludeDirectories { get; set; }
+
+    [Option('x', "exclude_dirs", Required = false, HelpText = "directories to exclude.")]
+    public IEnumerable<string> ExcludeDirectories { get; set; }
+
+    [Option('o', "output_dir", Default = ".", Required = false, HelpText = "output directory.")]
+    public string OutputDirectory { get; set; }
+  }
+
   public class Inspector : IContext, IDisposable
   {
-    public class Options
-    {
-      [Option('d', "dirs", Required = true, HelpText = "directories to scan.")]
-      public IEnumerable<string> IncludeDirectories { get; set; }
-
-      [Option('x', "exclude_dirs", Required = false, HelpText = "directories to exclude.")]
-      public IEnumerable<string> ExcludeDirectories { get; set; }
-
-      [Option('o', "output_dir", Default = ".", Required = false, HelpText = "output directory.")]
-      public string OutputDirectory { get; set; }
-    }
-
     [DefectClass(Code = "A1", Severity = DefectSeverity.Internal)]
     private class Defect_PluginLoadFailure : Defect
     {
@@ -53,6 +53,7 @@ namespace InspectorCore
     private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>();
     private Dictionary<String, ProjectRootElement> projects = new Dictionary<String, ProjectRootElement>();
     private List<ILogger> loggers = new List<ILogger>();
+    private InspectorOptions options;
 
     private void collectInspections()
     {
@@ -73,7 +74,7 @@ namespace InspectorCore
       }
     }
 
-    private void collectFiles(Options options)
+    private void collectFiles()
     {
       LogMessage(MessageImportance.Normal, SMessage.CollectingFiles);
       foreach (var dir in options.IncludeDirectories)
@@ -187,6 +188,14 @@ namespace InspectorCore
       }
     }
 
+    public InspectorOptions Options
+    {
+      get
+      {
+        return options;
+      }
+    }
+
     public void AddLogger(ILogger logger)
     {
       loggers.Add(logger);
@@ -197,14 +206,16 @@ namespace InspectorCore
       loggers.Remove(logger);
     }
 
-    public void Run(Options options)
+    public void Run(InspectorOptions options)
     {
+      this.options = options;
+
       LogMessage(MessageImportance.High, SMessage.LoadingInspections);
       loadPlugins();
       collectInspections();
 
       LogMessage(MessageImportance.High, SMessage.LoadingProjects);
-      collectFiles(options);
+      collectFiles();
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
