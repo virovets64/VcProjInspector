@@ -50,8 +50,8 @@ namespace InspectorCore
     private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
-    private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>();
-    private Dictionary<String, ProjectRootElement> projects = new Dictionary<String, ProjectRootElement>();
+    private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<String, ProjectRootElement> projects = new Dictionary<String, ProjectRootElement>(StringComparer.InvariantCultureIgnoreCase);
     private List<ILogger> loggers = new List<ILogger>();
     private InspectorOptions options;
 
@@ -79,17 +79,13 @@ namespace InspectorCore
       LogMessage(MessageImportance.Normal, SMessage.CollectingFiles);
       foreach (var dir in options.IncludeDirectories)
       {
-        foreach (var filename in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+        String fullDirName = Utils.GetActualFullPath(dir);
+        foreach (var filename in Directory.GetFiles(fullDirName, "*", SearchOption.AllDirectories))
         {
-          switch (Path.GetExtension(filename))
-          {
-            case ".sln":
-              addSolution(filename);
-              break;
-            case ".vcxproj":
-              addProject(filename);
-              break;
-          }
+          if(Utils.FileExtensionIs(filename, ".sln"))
+            addSolution(filename);
+          else if(Utils.FileExtensionIs(filename, ".vcxproj"))
+            addProject(filename);
         }
       }
     }
@@ -234,5 +230,6 @@ namespace InspectorCore
       foreach (var logger in loggers)
         logger.Dispose();
     }
+
   }
 }

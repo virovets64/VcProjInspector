@@ -106,7 +106,7 @@ namespace CommonInspections
       public HashSet<ProjectExtra> References = new HashSet<ProjectExtra>();
     }
 
-    private Dictionary<String, ProjectExtra> projectsByPath = new Dictionary<String, ProjectExtra>();
+    private Dictionary<String, ProjectExtra> projectsByPath = new Dictionary<String, ProjectExtra>(StringComparer.InvariantCultureIgnoreCase);
     private Dictionary<Guid, ProjectExtra> projectsById = new Dictionary<Guid, ProjectExtra>();
     private List<SolutionExtra> solutions = new List<SolutionExtra>();
 
@@ -179,7 +179,7 @@ namespace CommonInspections
       {
         foreach (var reference in project.RootElement.Items.Where(x => x.ItemType == "ProjectReference"))
         {
-          var refPath = Path.GetFullPath(Path.Combine(project.RootElement.DirectoryPath, reference.Include));
+          var refPath = Path.Combine(project.RootElement.DirectoryPath, reference.Include);
           var refProject = findProjectByPath(refPath);
           if (refProject == null)
           {
@@ -212,8 +212,8 @@ namespace CommonInspections
         {
           if (projectInSolution.ProjectType == SolutionProjectType.KnownToBeMSBuildFormat)
           {
-            var refPath = Path.GetFullPath(projectInSolution.AbsolutePath);
-            if (Path.GetExtension(refPath) == ".vcxproj")
+            var refPath = projectInSolution.AbsolutePath;
+            if (Utils.FileExtensionIs(refPath, ".vcxproj"))
             {
               var refProject = findProjectByPath(refPath);
               if (refProject == null)
@@ -256,6 +256,5 @@ namespace CommonInspections
             if(!solution.References.Contains(referencedProject))
               Context.AddDefect(new Defect_MissingProject(solution.Path, project.Path, referencedProject.Path));
     }
-
   }
 }
