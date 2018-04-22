@@ -115,23 +115,19 @@ namespace InspectorCore
 
     public InspectedSolution FindSolution(String path)
     {
-      InspectedSolution result = null;
-      model.solutions.TryGetValue(path, out result);
-      return result;
+      return model.FindEntity(path) as InspectedSolution;
     }
 
     public InspectedProject FindProject(String path)
     {
-      InspectedProject result = null;
-      model.projects.TryGetValue(path, out result);
-      return result;
+      return model.FindEntity(path) as InspectedProject;
     }
 
     public IEnumerable<InspectedSolution> Solutions
     {
       get
       {
-        return model.solutions.Values;
+        return model.Entites().Select(x => x as InspectedSolution).Where(x => x != null);
       }
     }
 
@@ -139,7 +135,7 @@ namespace InspectorCore
     {
       get
       {
-        return model.projects.Values;
+        return model.Entites().Select(x => x as InspectedProject).Where(x => x != null);
       }
     }
 

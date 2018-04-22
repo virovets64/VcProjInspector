@@ -6,10 +6,20 @@ using System.Text;
 
 namespace InspectorCore
 {
-  public class InspectedSolution
+  public class InspectedEntity
   {
     public String FullPath { get; internal set; }
     public String PathFromBase { get; internal set; }
+  }
+
+  public class InspectedRelation
+  {
+    public InspectedEntity From { get; internal set; }
+    public InspectedEntity To { get; internal set; }
+  }
+
+  public class InspectedSolution: InspectedEntity
+  {
     public Microsoft.Build.Construction.SolutionFile Solution { get; internal set; }
     public bool Valid
     {
@@ -17,10 +27,8 @@ namespace InspectorCore
     }
   }
 
-  public class InspectedProject
+  public class InspectedProject: InspectedEntity
   {
-    public String FullPath { get; internal set; }
-    public String PathFromBase { get; internal set; }
     public Microsoft.Build.Construction.ProjectRootElement Root { get; internal set; }
     public bool Valid
     {
@@ -37,9 +45,45 @@ namespace InspectorCore
       collectFiles();
     }
 
-    public Dictionary<String, InspectedSolution> solutions = new Dictionary<String, InspectedSolution>(StringComparer.InvariantCultureIgnoreCase);
-    public Dictionary<String, InspectedProject> projects = new Dictionary<String, InspectedProject>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<String, InspectedEntity> entites = new Dictionary<string, InspectedEntity>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<InspectedEntity, List<InspectedRelation>> outgoingRelations = new Dictionary<InspectedEntity, List<InspectedRelation>>();
+    private Dictionary<InspectedEntity, List<InspectedRelation>> ingoingRelations = new Dictionary<InspectedEntity, List<InspectedRelation>>();
     private IContext Context { get; }
+
+    public void AddEntity(InspectedEntity entity)
+    {
+      entites.Add(entity.FullPath, entity);
+      outgoingRelations.Add(entity, new List<InspectedRelation>());
+      ingoingRelations.Add(entity, new List<InspectedRelation>());
+    }
+
+    public void AddRelation(InspectedRelation relation)
+    {
+      outgoingRelations[relation.From].Add(relation);
+      ingoingRelations[relation.To].Add(relation);
+    }
+
+    public IEnumerable<InspectedEntity> Entites()
+    {
+      return entites.Values;
+    }
+
+    public IEnumerable<InspectedRelation> OutgoingRelations(InspectedEntity entity)
+    {
+      return outgoingRelations[entity];
+    }
+
+    public IEnumerable<InspectedRelation> IngoingRelations(InspectedEntity entity)
+    {
+      return ingoingRelations[entity];
+    }
+
+    public InspectedEntity FindEntity(String path)
+    {
+      InspectedEntity entity = null;
+      entites.TryGetValue(path, out entity);
+      return entity;
+    }
 
     [DefectClass(Code = "A2", Severity = DefectSeverity.Error)]
     private class Defect_SolutionOpenFailure : Defect
@@ -85,7 +129,7 @@ namespace InspectorCore
       {
         Context.AddDefect(new Defect_SolutionOpenFailure(filename, e.Message));
       }
-      solutions.Add(filename, new InspectedSolution { Solution = solution, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
+      AddEntity(new InspectedSolution { Solution = solution, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
     }
 
     private void addProject(string filename)
@@ -100,7 +144,7 @@ namespace InspectorCore
       {
         Context.AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
       }
-      projects.Add(filename, new InspectedProject { Root = project, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
+      AddEntity(new InspectedProject { Root = project, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
     }
 
 
