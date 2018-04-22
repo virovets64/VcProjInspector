@@ -19,6 +19,9 @@ namespace InspectorCore
 
     [Option('o', "output_dir", Default = ".", Required = false, HelpText = "output directory.")]
     public string OutputDirectory { get; set; }
+
+    [Option('b', "base_dir", Default = "", Required = false, HelpText = "base directory.")]
+    public string BaseDirectory { get; set; }
   }
 
   public class Inspector : IContext, IDisposable
@@ -166,6 +169,11 @@ namespace InspectorCore
       var text = String.Format(format, args);
       foreach (var logger in loggers)
         logger.LogMessage(importance, text);
+    }
+
+    public String RemoveBase(String path)
+    {
+      return Path.GetRelativePath(Options.BaseDirectory, path);
     }
 
     public IReadOnlyDictionary<String, SolutionFile> Solutions

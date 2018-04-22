@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using InspectorCore;
 using CsvHelper;
-using CsvHelper.Configuration;
 using System.IO;
 using Microsoft.Build.Construction;
 
@@ -13,52 +12,71 @@ namespace CommonInspections
   [InspectionClass]
   class CsvReport : Inspection
   {
-
-    sealed class SolutionMap : ClassMap<KeyValuePair<String, SolutionFile>>
-    {
-      public SolutionMap()
-      {
-        Map(m => m.Key).Name("Filename");
-      }
-    }
-
-
-    sealed class ProjectMap : ClassMap<ProjectRootElement>
-    {
-      public ProjectMap()
-      {
-        Map(m => m.FullPath).Name("Filename");
-      }
-    }
-
-    sealed class ProjectPropertyMap : ClassMap<ProjectPropertyElement>
-    {
-      public ProjectPropertyMap()
-      {
-        Map(m => m.ContainingProject.FullPath).Name("Project");
-        Map(m => m.Name).Name("Name");
-        Map(m => m.Parent.Label).Name("Label");
-        Map(m => m.Parent.Condition).Name("Condition");
-        Map(m => m.Value).Name("Value");
-      }
-    }
-
-
     protected override void run()
     {
-      report(Context.Solutions.Where(x => x.Value != null), typeof(SolutionMap), "Solution.csv");
-      report(Context.Projects.Values.Where(x => x != null), typeof(ProjectMap), "Project.csv");
-      report(Context.Projects.Values.Where(x => x != null).SelectMany(x => x.Properties), typeof(ProjectPropertyMap), "Property.csv");
+      new Report<KeyValuePair<String, SolutionFile>>()
+        .AddField("Filename", x => Context.RemoveBase(x.Key))
+        .SetRecords(Context.Solutions.Where(x => x.Value != null))
+        .Write("Solution.csv", Context);
+
+      new Report<ProjectRootElement>()
+        .AddField("Filename", x => Context.RemoveBase(x.FullPath))
+        .SetRecords(Context.Projects.Values.Where(x => x != null))
+        .Write("Project.csv", Context);
+
+      new Report<ProjectPropertyElement>()
+        .AddField("Project", x => Context.RemoveBase(x.ContainingProject.FullPath))
+        .AddField("Name", x => x.Name)
+        .AddField("Label", x => x.Parent.Label)
+        .AddField("Condition", x => x.Parent.Condition)
+        .AddField("Value", x => x.Value)
+        .SetRecords(Context.Projects.Values.Where(x => x != null).SelectMany(x => x.Properties))
+        .Write("Property.csv", Context);
     }
 
-    private void report<T>(IEnumerable<T> records, Type map, String filename)
+
+    private class Report<T>
     {
-      using (var textWriter = new StreamWriter(Path.Combine(Context.Options.OutputDirectory, filename)))
+      private class Field<U>
       {
-        using (var csvWriter = new CsvWriter(textWriter))
+        public String Name { get; set; }
+        public Func<U, String> Getter { get; set; }
+      }
+
+      private List<Field<T>> fields = new List<Field<T>>();
+      private IEnumerable<T> records;
+
+      public Report<T> AddField(String name, Func<T, String> getter)
+      {
+        fields.Add(new Field<T> { Name = name, Getter = getter });
+        return this;
+      }
+
+      public Report<T> SetRecords(IEnumerable<T> records)
+      {
+        this.records = records;
+        return this;
+      }
+      
+      public void Write(String filename, IContext context)
+      {
+        using (var textWriter = new StreamWriter(Path.Combine(context.Options.OutputDirectory, filename)))
         {
-          csvWriter.Configuration.RegisterClassMap(map);
-          csvWriter.WriteRecords(records);
+          using (var csvWriter = new CsvWriter(textWriter))
+          {
+            foreach (var field in fields)
+              csvWriter.WriteField(field.Name);
+
+            csvWriter.NextRecord();
+
+            foreach (var record in records)
+            {
+              foreach (var field in fields)
+                csvWriter.WriteField(field.Getter(record));
+
+              csvWriter.NextRecord();
+            }
+          }
         }
       }
     }
