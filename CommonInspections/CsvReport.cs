@@ -16,12 +16,12 @@ namespace CommonInspections
     {
       new Report<InspectedSolution>()
         .AddField("Filename", x => x.PathFromBase)
-        .SetRecords(Context.Solutions.Where(x => x.Solution != null))
+        .SetRecords(Context.Solutions.Where(x => x.Valid))
         .Write("Solution.csv", Context);
 
       new Report<InspectedProject>()
         .AddField("Filename", x => x.PathFromBase)
-        .SetRecords(Context.Projects.Where(x => x.Project != null))
+        .SetRecords(Context.Projects.Where(x => x.Valid))
         .Write("Project.csv", Context);
 
       new Report<ProjectPropertyElement>()
@@ -30,7 +30,7 @@ namespace CommonInspections
         .AddField("Label", x => x.Parent.Label)
         .AddField("Condition", x => x.Parent.Condition)
         .AddField("Value", x => x.Value)
-        .SetRecords(Context.Projects.Where(x => x.Project != null).SelectMany(x => x.Project.Properties))
+        .SetRecords(Context.Projects.Where(x => x.Valid).SelectMany(x => x.Root.Properties))
         .Write("Property.csv", Context);
     }
 

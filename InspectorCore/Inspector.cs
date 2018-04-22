@@ -34,27 +34,10 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "A2", Severity = DefectSeverity.Error)]
-    private class Defect_SolutionOpenFailure : Defect
-    {
-      public Defect_SolutionOpenFailure(String filename, String errorMessage) :
-        base(filename, 0, String.Format(SDefect.SolutionOpenFailure, errorMessage))
-      { }
-    }
-
-    [DefectClass(Code = "A3", Severity = DefectSeverity.Error)]
-    private class Defect_ProjectOpenFailure : Defect
-    {
-      public Defect_ProjectOpenFailure(String filename, String errorMessage) :
-        base(filename, 0, String.Format(SDefect.ProjectOpenFailure, errorMessage))
-      { }
-    }
-
+    private DataModel model;
     private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
-    private Dictionary<String, InspectedSolution> solutions = new Dictionary<String, InspectedSolution>(StringComparer.InvariantCultureIgnoreCase);
-    private Dictionary<String, InspectedProject> projects = new Dictionary<String, InspectedProject>(StringComparer.InvariantCultureIgnoreCase);
     private List<ILogger> loggers = new List<ILogger>();
     private InspectorOptions options;
 
@@ -75,52 +58,6 @@ namespace InspectorCore
           }
         }
       }
-    }
-
-    private void collectFiles()
-    {
-      LogMessage(MessageImportance.Normal, SMessage.CollectingFiles);
-      foreach (var dir in options.IncludeDirectories)
-      {
-        String fullDirName = Utils.GetActualFullPath(dir);
-        foreach (var filename in Directory.GetFiles(fullDirName, "*", SearchOption.AllDirectories))
-        {
-          if (Utils.FileExtensionIs(filename, ".sln"))
-            addSolution(filename);
-          else if (Utils.FileExtensionIs(filename, ".vcxproj"))
-            addProject(filename);
-        }
-      }
-    }
-
-    private void addSolution(String filename)
-    {
-      SolutionFile solution = null;
-      try
-      {
-        LogMessage(MessageImportance.Low, SMessage.OpeningSolution, filename);
-        solution = SolutionFile.Parse(filename);
-      }
-      catch (Exception e)
-      {
-        AddDefect(new Defect_SolutionOpenFailure(filename, e.Message));
-      }
-      solutions.Add(filename, new InspectedSolution { Solution = solution, FullPath = filename, PathFromBase = RemoveBase(filename) });
-    }
-
-    private void addProject(string filename)
-    {
-      ProjectRootElement project = null;
-      try
-      {
-        LogMessage(MessageImportance.Low, SMessage.OpeningProject, filename);
-        project = ProjectRootElement.Open(filename);
-      }
-      catch (Exception e)
-      {
-        AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
-      }
-      projects.Add(filename, new InspectedProject { Project = project, FullPath = filename, PathFromBase = RemoveBase(filename) });
     }
 
     private void runInspections()
@@ -176,11 +113,25 @@ namespace InspectorCore
       return Path.GetRelativePath(Options.BaseDirectory, path);
     }
 
+    public InspectedSolution FindSolution(String path)
+    {
+      InspectedSolution result = null;
+      model.solutions.TryGetValue(path, out result);
+      return result;
+    }
+
+    public InspectedProject FindProject(String path)
+    {
+      InspectedProject result = null;
+      model.projects.TryGetValue(path, out result);
+      return result;
+    }
+
     public IEnumerable<InspectedSolution> Solutions
     {
       get
       {
-        return solutions.Values;
+        return model.solutions.Values;
       }
     }
 
@@ -188,7 +139,7 @@ namespace InspectorCore
     {
       get
       {
-        return projects.Values;
+        return model.projects.Values;
       }
     }
 
@@ -219,15 +170,15 @@ namespace InspectorCore
       collectInspections();
 
       LogMessage(MessageImportance.High, SMessage.LoadingProjects);
-      collectFiles();
+      model = new DataModel(this);
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
 
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Plugins loaded: ", plugins.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Inspections run: ", inspections.Count);
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", solutions.Count(x => x.Value != null));
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", projects.Count(x => x.Value != null));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", Solutions.Count(x => x.Valid));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", Projects.Count(x => x.Valid));
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Defects found: ", defects.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Errors: ", defects.Count(x => x.Severity != DefectSeverity.Error));
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));

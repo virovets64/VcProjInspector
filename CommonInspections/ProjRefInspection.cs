@@ -93,34 +93,23 @@ namespace CommonInspections
 
     class ProjectExtra
     {
-      public String Path;
-      public ProjectRootElement RootElement;
       public Guid? Id;
-      public HashSet<ProjectExtra> References = new HashSet<ProjectExtra>();
+      public HashSet<InspectedProject> References = new HashSet<InspectedProject>();
     }
 
     class SolutionExtra
     {
-      public String Path;
-      public SolutionFile Solution;
-      public HashSet<ProjectExtra> References = new HashSet<ProjectExtra>();
+      public HashSet<InspectedProject> References = new HashSet<InspectedProject>();
     }
 
-    private Dictionary<String, ProjectExtra> projectsByPath = new Dictionary<String, ProjectExtra>(StringComparer.InvariantCultureIgnoreCase);
-    private Dictionary<Guid, ProjectExtra> projectsById = new Dictionary<Guid, ProjectExtra>();
-    private List<SolutionExtra> solutions = new List<SolutionExtra>();
+    private Dictionary<InspectedSolution, SolutionExtra> solutionExtras = new Dictionary<InspectedSolution, SolutionExtra>();
+    private Dictionary<InspectedProject, ProjectExtra> projectExtras = new Dictionary<InspectedProject, ProjectExtra>();
+    private Dictionary<Guid, InspectedProject> projectsById = new Dictionary<Guid, InspectedProject>();
 
-    private ProjectExtra findProjectByPath(String path)
-    {
-      ProjectExtra result;
-      if (projectsByPath.TryGetValue(path, out result))
-        return result;
-      return null;
-    }
 
-    private ProjectExtra findProjectById(Guid id)
+    private InspectedProject findProjectById(Guid id)
     {
-      ProjectExtra result;
+      InspectedProject result;
       if (projectsById.TryGetValue(id, out result))
         return result;
       return null;
@@ -137,37 +126,37 @@ namespace CommonInspections
 
     private void prepareExtras()
     {
-      foreach (var inspectedProject in Context.Projects)
-        projectsByPath[inspectedProject.FullPath] = new ProjectExtra { Path = inspectedProject.FullPath, RootElement = inspectedProject.Project };
+      foreach (var inspectedProject in Context.Projects.Where(x => x.Valid))
+        projectExtras.Add(inspectedProject, new ProjectExtra());
 
-      foreach (var inspectedSolution in Context.Solutions)
-        solutions.Add(new SolutionExtra { Path = inspectedSolution.FullPath, Solution = inspectedSolution.Solution });
+      foreach (var inspectedSolution in Context.Solutions.Where(x => x.Valid))
+        solutionExtras.Add(inspectedSolution, new SolutionExtra());
     }
 
     private void retrieveProjectGuids()
     {
-      foreach (var project in projectsByPath.Values)
+      foreach (var project in Context.Projects.Where(x => x.Valid))
       {
-        var guidProperty = project.RootElement.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
+        var guidProperty = project.Root.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
         if(guidProperty == null)
         {
-          Context.AddDefect(new Defect_ProjectHasNoGuid(project.Path));
+          Context.AddDefect(new Defect_ProjectHasNoGuid(project.PathFromBase));
         }
         else
         {
-          Guid? guid = parseGuid(guidProperty.Value, project.Path);
+          Guid? guid = parseGuid(guidProperty.Value, project.PathFromBase);
           if (guid.HasValue)
           {
             var anotherProject = findProjectById(guid.Value);
             if (anotherProject != null)
             {
-              Context.AddDefect(new Defect_ProjectGuidIsDuplicated(guidProperty.Location, anotherProject.Path, guid.Value));
+              Context.AddDefect(new Defect_ProjectGuidIsDuplicated(guidProperty.Location, anotherProject.PathFromBase, guid.Value));
             }
             else
             {
               projectsById[guid.Value] = project;
             }
-            project.Id = guid.Value;
+            projectExtras[project].Id = guid.Value;
           }
         }
       }
@@ -175,29 +164,31 @@ namespace CommonInspections
 
     private void retrieveProjectRefs()
     {
-      foreach (var project in projectsByPath.Values.Where(x => x.RootElement != null))
+      foreach (var project in Context.Projects.Where(x => x.Valid))
       {
-        foreach (var reference in project.RootElement.Items.Where(x => x.ItemType == "ProjectReference"))
+        var extra = projectExtras[project];
+        foreach (var reference in project.Root.Items.Where(x => x.ItemType == "ProjectReference"))
         {
-          var refPath = Path.GetFullPath(Path.Combine(project.RootElement.DirectoryPath, reference.Include));
-          var refProject = findProjectByPath(refPath);
+          var refPath = Path.GetFullPath(Path.Combine(project.Root.DirectoryPath, reference.Include));
+          var refProject = Context.FindProject(refPath);
           if (refProject == null)
           {
             Context.AddDefect(new Defect_ProjectRefBroken(reference.Location, refPath));
           }
-          else if (project.References.Contains(refProject))
+          else if (extra.References.Contains(refProject))
           {
             Context.AddDefect(new Defect_ProjectRefDuplicate(reference.Location, refPath));
           }
           else
           {
-            project.References.Add(refProject);
+            extra.References.Add(refProject);
             var refGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
-            Guid? refGuid = refGuidElement == null ? null : parseGuid(refGuidElement.Value, project.Path);
+            Guid? refGuid = refGuidElement == null ? null : parseGuid(refGuidElement.Value, project.PathFromBase);
             int line = refGuidElement == null ? 0 : refGuidElement.Location.Line;
-            if (refProject.Id != refGuid)
+            var projGuid = projectExtras[refProject].Id;
+            if (projGuid != refGuid)
             {
-              Context.AddDefect(new Defect_ProjectGuidMismatch(project.Path, line, refProject.Path, refGuid, refProject.Id));
+              Context.AddDefect(new Defect_ProjectGuidMismatch(project.PathFromBase, line, refProject.PathFromBase, refGuid, projGuid));
             }
           }
         }
@@ -206,7 +197,7 @@ namespace CommonInspections
 
     private void retrieveSolutionRefs()
     {
-      foreach (var solution in solutions.Where(x => x.Solution != null))
+      foreach (var (solution, extra) in solutionExtras.Where(x => x.Key.Solution != null))
       {
         foreach (var projectInSolution in solution.Solution.ProjectsInOrder)
         {
@@ -215,22 +206,23 @@ namespace CommonInspections
             var refPath = projectInSolution.AbsolutePath;
             if (Utils.FileExtensionIs(refPath, ".vcxproj"))
             {
-              var refProject = findProjectByPath(refPath);
+              var refProject = Context.FindProject(refPath);
               if (refProject == null)
               {
-                Context.AddDefect(new Defect_SolutiontRefBroken(solution.Path, refPath));
+                Context.AddDefect(new Defect_SolutiontRefBroken(solution.PathFromBase, refPath));
               }
-              else if (solution.References.Contains(refProject))
+              else if (extra.References.Contains(refProject))
               {
-                Context.AddDefect(new Defect_SolutionRefDuplicate(solution.Path, refProject.Path));
+                Context.AddDefect(new Defect_SolutionRefDuplicate(solution.PathFromBase, refProject.PathFromBase));
               }
               else
               {
-                solution.References.Add(refProject);
-                Guid? refGuid = parseGuid(projectInSolution.ProjectGuid, solution.Path);
-                if (refProject.Id != refGuid)
+                extra.References.Add(refProject);
+                Guid? refGuid = parseGuid(projectInSolution.ProjectGuid, solution.PathFromBase);
+                var projGuid = projectExtras[refProject].Id;
+                if (projGuid != refGuid)
                 {
-                  Context.AddDefect(new Defect_SolutionGuidMismatch(solution.Path, refPath, refGuid, refProject.Id));
+                  Context.AddDefect(new Defect_SolutionGuidMismatch(solution.PathFromBase, refPath, refGuid, projGuid));
                 }
               }
             }
@@ -250,11 +242,11 @@ namespace CommonInspections
 
     private void detectMissingProjectsInSolutions()
     {
-      foreach (var solution in solutions.Where(x => x.Solution != null))
-        foreach (var project in solution.References.Where(x => x.RootElement != null))
-          foreach (var referencedProject in project.References)
-            if(!solution.References.Contains(referencedProject))
-              Context.AddDefect(new Defect_MissingProject(solution.Path, project.Path, referencedProject.Path));
+      foreach (var solution in Context.Solutions.Where(x => x.Valid))
+        foreach (var project in solutionExtras[solution].References.Where(x => x.Valid))
+          foreach (var referencedProject in projectExtras[project].References)
+            if (!solutionExtras[solution].References.Contains(referencedProject))
+              Context.AddDefect(new Defect_MissingProject(solution.PathFromBase, project.PathFromBase, referencedProject.PathFromBase));
     }
   }
 }
