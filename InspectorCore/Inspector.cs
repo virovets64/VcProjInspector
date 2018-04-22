@@ -53,14 +53,14 @@ namespace InspectorCore
     private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
     private List<Defect> defects = new List<Defect>();
-    private Dictionary<String, SolutionFile> solutions = new Dictionary<String, SolutionFile>(StringComparer.InvariantCultureIgnoreCase);
-    private Dictionary<String, ProjectRootElement> projects = new Dictionary<String, ProjectRootElement>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<String, InspectedSolution> solutions = new Dictionary<String, InspectedSolution>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<String, InspectedProject> projects = new Dictionary<String, InspectedProject>(StringComparer.InvariantCultureIgnoreCase);
     private List<ILogger> loggers = new List<ILogger>();
     private InspectorOptions options;
 
     private void collectInspections()
     {
-      foreach(var plugin in plugins)
+      foreach (var plugin in plugins)
       {
         var types = plugin.GetTypes();
         foreach (var type in types)
@@ -85,9 +85,9 @@ namespace InspectorCore
         String fullDirName = Utils.GetActualFullPath(dir);
         foreach (var filename in Directory.GetFiles(fullDirName, "*", SearchOption.AllDirectories))
         {
-          if(Utils.FileExtensionIs(filename, ".sln"))
+          if (Utils.FileExtensionIs(filename, ".sln"))
             addSolution(filename);
-          else if(Utils.FileExtensionIs(filename, ".vcxproj"))
+          else if (Utils.FileExtensionIs(filename, ".vcxproj"))
             addProject(filename);
         }
       }
@@ -105,7 +105,7 @@ namespace InspectorCore
       {
         AddDefect(new Defect_SolutionOpenFailure(filename, e.Message));
       }
-      solutions.Add(filename, solution);
+      solutions.Add(filename, new InspectedSolution { Solution = solution, FullPath = filename, PathFromBase = RemoveBase(filename) });
     }
 
     private void addProject(string filename)
@@ -120,7 +120,7 @@ namespace InspectorCore
       {
         AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
       }
-      projects.Add(filename, project);
+      projects.Add(filename, new InspectedProject { Project = project, FullPath = filename, PathFromBase = RemoveBase(filename) });
     }
 
     private void runInspections()
@@ -135,7 +135,7 @@ namespace InspectorCore
     private void loadPlugins()
     {
       var path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Plugins");
-      foreach(var filename in Directory.GetFiles(path, "*.dll"))
+      foreach (var filename in Directory.GetFiles(path, "*.dll"))
       {
         try
         {
@@ -176,19 +176,19 @@ namespace InspectorCore
       return Path.GetRelativePath(Options.BaseDirectory, path);
     }
 
-    public IReadOnlyDictionary<String, SolutionFile> Solutions
+    public IEnumerable<InspectedSolution> Solutions
     {
       get
       {
-        return solutions;
+        return solutions.Values;
       }
     }
 
-    public IReadOnlyDictionary<String, ProjectRootElement> Projects
+    public IEnumerable<InspectedProject> Projects
     {
       get
       {
-        return projects;
+        return projects.Values;
       }
     }
 

@@ -137,11 +137,11 @@ namespace CommonInspections
 
     private void prepareExtras()
     {
-      foreach (var (projectPath, project) in Context.Projects)
-        projectsByPath[projectPath] = new ProjectExtra { Path = projectPath, RootElement = project };
+      foreach (var inspectedProject in Context.Projects)
+        projectsByPath[inspectedProject.FullPath] = new ProjectExtra { Path = inspectedProject.FullPath, RootElement = inspectedProject.Project };
 
-      foreach (var (solutionPath, solution) in Context.Solutions)
-        solutions.Add(new SolutionExtra { Path = solutionPath, Solution = solution });
+      foreach (var inspectedSolution in Context.Solutions)
+        solutions.Add(new SolutionExtra { Path = inspectedSolution.FullPath, Solution = inspectedSolution.Solution });
     }
 
     private void retrieveProjectGuids()
@@ -179,7 +179,7 @@ namespace CommonInspections
       {
         foreach (var reference in project.RootElement.Items.Where(x => x.ItemType == "ProjectReference"))
         {
-          var refPath = Path.Combine(project.RootElement.DirectoryPath, reference.Include);
+          var refPath = Path.GetFullPath(Path.Combine(project.RootElement.DirectoryPath, reference.Include));
           var refProject = findProjectByPath(refPath);
           if (refProject == null)
           {

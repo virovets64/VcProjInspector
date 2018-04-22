@@ -14,14 +14,14 @@ namespace CommonInspections
   {
     protected override void run()
     {
-      new Report<KeyValuePair<String, SolutionFile>>()
-        .AddField("Filename", x => Context.RemoveBase(x.Key))
-        .SetRecords(Context.Solutions.Where(x => x.Value != null))
+      new Report<InspectedSolution>()
+        .AddField("Filename", x => x.PathFromBase)
+        .SetRecords(Context.Solutions.Where(x => x.Solution != null))
         .Write("Solution.csv", Context);
 
-      new Report<ProjectRootElement>()
-        .AddField("Filename", x => Context.RemoveBase(x.FullPath))
-        .SetRecords(Context.Projects.Values.Where(x => x != null))
+      new Report<InspectedProject>()
+        .AddField("Filename", x => x.PathFromBase)
+        .SetRecords(Context.Projects.Where(x => x.Project != null))
         .Write("Project.csv", Context);
 
       new Report<ProjectPropertyElement>()
@@ -30,7 +30,7 @@ namespace CommonInspections
         .AddField("Label", x => x.Parent.Label)
         .AddField("Condition", x => x.Parent.Condition)
         .AddField("Value", x => x.Value)
-        .SetRecords(Context.Projects.Values.Where(x => x != null).SelectMany(x => x.Properties))
+        .SetRecords(Context.Projects.Where(x => x.Project != null).SelectMany(x => x.Project.Properties))
         .Write("Property.csv", Context);
     }
 
