@@ -94,22 +94,22 @@ namespace CommonInspections
     class ProjectExtra
     {
       public Guid? Id;
-      public HashSet<InspectedProject> References = new HashSet<InspectedProject>();
+      public HashSet<ProjectEntity> References = new HashSet<ProjectEntity>();
     }
 
     class SolutionExtra
     {
-      public HashSet<InspectedProject> References = new HashSet<InspectedProject>();
+      public HashSet<ProjectEntity> References = new HashSet<ProjectEntity>();
     }
 
-    private Dictionary<InspectedSolution, SolutionExtra> solutionExtras = new Dictionary<InspectedSolution, SolutionExtra>();
-    private Dictionary<InspectedProject, ProjectExtra> projectExtras = new Dictionary<InspectedProject, ProjectExtra>();
-    private Dictionary<Guid, InspectedProject> projectsById = new Dictionary<Guid, InspectedProject>();
+    private Dictionary<SolutionEntity, SolutionExtra> solutionExtras = new Dictionary<SolutionEntity, SolutionExtra>();
+    private Dictionary<ProjectEntity, ProjectExtra> projectExtras = new Dictionary<ProjectEntity, ProjectExtra>();
+    private Dictionary<Guid, ProjectEntity> projectsById = new Dictionary<Guid, ProjectEntity>();
 
 
-    private InspectedProject findProjectById(Guid id)
+    private ProjectEntity findProjectById(Guid id)
     {
-      InspectedProject result;
+      ProjectEntity result;
       if (projectsById.TryGetValue(id, out result))
         return result;
       return null;
@@ -126,16 +126,16 @@ namespace CommonInspections
 
     private void prepareExtras()
     {
-      foreach (var inspectedProject in Context.Projects.Where(x => x.Valid))
+      foreach (var inspectedProject in Model.ValidProjects())
         projectExtras.Add(inspectedProject, new ProjectExtra());
 
-      foreach (var inspectedSolution in Context.Solutions.Where(x => x.Valid))
+      foreach (var inspectedSolution in Model.ValidSolutions())
         solutionExtras.Add(inspectedSolution, new SolutionExtra());
     }
 
     private void retrieveProjectGuids()
     {
-      foreach (var project in Context.Projects.Where(x => x.Valid))
+      foreach (var project in Model.ValidProjects())
       {
         var guidProperty = project.Root.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
         if(guidProperty == null)
@@ -164,13 +164,13 @@ namespace CommonInspections
 
     private void retrieveProjectRefs()
     {
-      foreach (var project in Context.Projects.Where(x => x.Valid))
+      foreach (var project in Model.ValidProjects())
       {
         var extra = projectExtras[project];
         foreach (var reference in project.Root.Items.Where(x => x.ItemType == "ProjectReference"))
         {
           var refPath = Path.GetFullPath(Path.Combine(project.Root.DirectoryPath, reference.Include));
-          var refProject = Context.FindProject(refPath);
+          var refProject = Model.FindProject(refPath);
           if (refProject == null)
           {
             Context.AddDefect(new Defect_ProjectRefBroken(reference.Location, refPath));
@@ -206,7 +206,7 @@ namespace CommonInspections
             var refPath = projectInSolution.AbsolutePath;
             if (Utils.FileExtensionIs(refPath, ".vcxproj"))
             {
-              var refProject = Context.FindProject(refPath);
+              var refProject = Model.FindProject(refPath);
               if (refProject == null)
               {
                 Context.AddDefect(new Defect_SolutiontRefBroken(solution.PathFromBase, refPath));
@@ -242,7 +242,7 @@ namespace CommonInspections
 
     private void detectMissingProjectsInSolutions()
     {
-      foreach (var solution in Context.Solutions.Where(x => x.Valid))
+      foreach (var solution in Model.ValidSolutions())
         foreach (var project in solutionExtras[solution].References.Where(x => x.Valid))
           foreach (var referencedProject in projectExtras[project].References)
             if (!solutionExtras[solution].References.Contains(referencedProject))

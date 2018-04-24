@@ -7,6 +7,7 @@ namespace InspectorCore
   public abstract class Inspection
   {
     public IContext Context { get; internal set; }
+    public IDataModel Model { get; internal set; }
 
     protected abstract void run();
 

@@ -2,23 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace InspectorCore
 {
-  public class InspectedEntity
+  public class Entity
   {
+    public IDataModel Model { get; internal set; }
     public String FullPath { get; internal set; }
     public String PathFromBase { get; internal set; }
   }
 
-  public class InspectedRelation
+  public class Link
   {
-    public InspectedEntity From { get; internal set; }
-    public InspectedEntity To { get; internal set; }
+    public Entity From { get; internal set; }
+    public Entity To { get; internal set; }
   }
 
-  public class InspectedSolution: InspectedEntity
+  public class SolutionEntity: Entity
   {
     public Microsoft.Build.Construction.SolutionFile Solution { get; internal set; }
     public bool Valid
@@ -27,7 +29,7 @@ namespace InspectorCore
     }
   }
 
-  public class InspectedProject: InspectedEntity
+  public class ProjectEntity: Entity
   {
     public Microsoft.Build.Construction.ProjectRootElement Root { get; internal set; }
     public bool Valid
@@ -36,7 +38,46 @@ namespace InspectorCore
     }
   }
 
-  class DataModel
+  public interface IDataModel
+  {
+    IEnumerable<Entity> Entites();
+    IEnumerable<Link> OutgoingLinks(Entity entity);
+    IEnumerable<Link> IngoingLinks(Entity entity);
+    Entity FindEntity(String path);
+    void AddEntity(Entity entity);
+    void AddLink(Link link);
+  }
+
+
+  public static class ModelExtensions
+  {
+    public static IEnumerable<SolutionEntity> Solutions(this IDataModel model)
+    {
+      return model.Entites().Select(x => x as SolutionEntity).Where(x => x != null);
+    }
+    public static IEnumerable<SolutionEntity> ValidSolutions(this IDataModel model)
+    {
+      return Solutions(model).Where(x => x.Valid);
+    }
+    public static IEnumerable<ProjectEntity> Projects(this IDataModel model)
+    {
+      return model.Entites().Select(x => x as ProjectEntity).Where(x => x != null);
+    }
+    public static IEnumerable<ProjectEntity> ValidProjects(this IDataModel model)
+    {
+      return Projects(model).Where(x => x.Valid);
+    }
+    public static SolutionEntity FindSolution(this IDataModel model, String path)
+    {
+      return model.FindEntity(path) as SolutionEntity;
+    }
+    public static ProjectEntity FindProject(this IDataModel model, String path)
+    {
+      return model.FindEntity(path) as ProjectEntity;
+    }
+  }
+
+  class DataModel: IDataModel
   {
     public DataModel(IContext context)
     {
@@ -45,42 +86,43 @@ namespace InspectorCore
       collectFiles();
     }
 
-    private Dictionary<String, InspectedEntity> entites = new Dictionary<string, InspectedEntity>(StringComparer.InvariantCultureIgnoreCase);
-    private Dictionary<InspectedEntity, List<InspectedRelation>> outgoingRelations = new Dictionary<InspectedEntity, List<InspectedRelation>>();
-    private Dictionary<InspectedEntity, List<InspectedRelation>> ingoingRelations = new Dictionary<InspectedEntity, List<InspectedRelation>>();
+    private Dictionary<String, Entity> entites = new Dictionary<string, Entity>(StringComparer.InvariantCultureIgnoreCase);
+    private Dictionary<Entity, List<Link>> outgoingLinks = new Dictionary<Entity, List<Link>>();
+    private Dictionary<Entity, List<Link>> ingoingLinks = new Dictionary<Entity, List<Link>>();
     private IContext Context { get; }
 
-    public void AddEntity(InspectedEntity entity)
+    public void AddEntity(Entity entity)
     {
+      entity.Model = this;
       entites.Add(entity.FullPath, entity);
-      outgoingRelations.Add(entity, new List<InspectedRelation>());
-      ingoingRelations.Add(entity, new List<InspectedRelation>());
+      outgoingLinks.Add(entity, new List<Link>());
+      ingoingLinks.Add(entity, new List<Link>());
     }
 
-    public void AddRelation(InspectedRelation relation)
+    public void AddLink(Link link)
     {
-      outgoingRelations[relation.From].Add(relation);
-      ingoingRelations[relation.To].Add(relation);
+      outgoingLinks[link.From].Add(link);
+      ingoingLinks[link.To].Add(link);
     }
 
-    public IEnumerable<InspectedEntity> Entites()
+    public IEnumerable<Entity> Entites()
     {
       return entites.Values;
     }
 
-    public IEnumerable<InspectedRelation> OutgoingRelations(InspectedEntity entity)
+    public IEnumerable<Link> OutgoingLinks(Entity entity)
     {
-      return outgoingRelations[entity];
+      return outgoingLinks[entity];
     }
 
-    public IEnumerable<InspectedRelation> IngoingRelations(InspectedEntity entity)
+    public IEnumerable<Link> IngoingLinks(Entity entity)
     {
-      return ingoingRelations[entity];
+      return ingoingLinks[entity];
     }
 
-    public InspectedEntity FindEntity(String path)
+    public Entity FindEntity(String path)
     {
-      InspectedEntity entity = null;
+      Entity entity = null;
       entites.TryGetValue(path, out entity);
       return entity;
     }
@@ -129,7 +171,7 @@ namespace InspectorCore
       {
         Context.AddDefect(new Defect_SolutionOpenFailure(filename, e.Message));
       }
-      AddEntity(new InspectedSolution { Solution = solution, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
+      AddEntity(new SolutionEntity { Solution = solution, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
     }
 
     private void addProject(string filename)
@@ -144,7 +186,7 @@ namespace InspectorCore
       {
         Context.AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
       }
-      AddEntity(new InspectedProject { Root = project, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
+      AddEntity(new ProjectEntity { Root = project, FullPath = filename, PathFromBase = Context.RemoveBase(filename) });
     }
 
 

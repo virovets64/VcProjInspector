@@ -54,6 +54,7 @@ namespace InspectorCore
             LogMessage(MessageImportance.Low, SMessage.CreatingInspection, type.Name);
             var inspection = (Inspection)Activator.CreateInstance(type);
             inspection.Context = this;
+            inspection.Model = model;
             inspections.Add(inspection);
           }
         }
@@ -113,32 +114,6 @@ namespace InspectorCore
       return Path.GetRelativePath(Options.BaseDirectory, path);
     }
 
-    public InspectedSolution FindSolution(String path)
-    {
-      return model.FindEntity(path) as InspectedSolution;
-    }
-
-    public InspectedProject FindProject(String path)
-    {
-      return model.FindEntity(path) as InspectedProject;
-    }
-
-    public IEnumerable<InspectedSolution> Solutions
-    {
-      get
-      {
-        return model.Entites().Select(x => x as InspectedSolution).Where(x => x != null);
-      }
-    }
-
-    public IEnumerable<InspectedProject> Projects
-    {
-      get
-      {
-        return model.Entites().Select(x => x as InspectedProject).Where(x => x != null);
-      }
-    }
-
     public InspectorOptions Options
     {
       get
@@ -173,8 +148,8 @@ namespace InspectorCore
 
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Plugins loaded: ", plugins.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Inspections run: ", inspections.Count);
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", Solutions.Count(x => x.Valid));
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", Projects.Count(x => x.Valid));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", model.ValidSolutions().Count());
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", model.ValidProjects().Count());
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Defects found: ", defects.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Errors: ", defects.Count(x => x.Severity != DefectSeverity.Error));
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));
