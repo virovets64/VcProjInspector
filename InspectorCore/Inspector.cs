@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using CommandLine;
-using Microsoft.Build.Construction;
 
 namespace InspectorCore
 {
