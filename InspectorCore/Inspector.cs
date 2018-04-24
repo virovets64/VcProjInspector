@@ -136,10 +136,11 @@ namespace InspectorCore
 
       LogMessage(MessageImportance.High, SMessage.LoadingInspections);
       loadPlugins();
-      collectInspections();
 
       LogMessage(MessageImportance.High, SMessage.LoadingProjects);
       model = new DataModel(this);
+
+      collectInspections();
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
