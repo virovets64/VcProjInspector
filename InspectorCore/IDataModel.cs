@@ -50,8 +50,8 @@ namespace InspectorCore
   public interface IDataModel
   {
     IEnumerable<Entity> Entites();
-    IEnumerable<Link> OutgoingLinks(Entity entity);
-    IEnumerable<Link> IngoingLinks(Entity entity);
+    IEnumerable<Link> LinksFrom(Entity entity);
+    IEnumerable<Link> LinksTo(Entity entity);
     Entity FindEntity(String path);
     void AddEntity(Entity entity);
     void AddLink(Link link);
@@ -60,9 +60,13 @@ namespace InspectorCore
 
   public static class ModelExtensions
   {
+    public static IEnumerable<EntityType> Entities<EntityType>(this IDataModel model) where EntityType : Entity
+    {
+      return model.Entites().Select(x => x as EntityType).Where(x => x != null);
+    }
     public static IEnumerable<SolutionEntity> Solutions(this IDataModel model)
     {
-      return model.Entites().Select(x => x as SolutionEntity).Where(x => x != null);
+      return model.Entities<SolutionEntity>();
     }
     public static IEnumerable<SolutionEntity> ValidSolutions(this IDataModel model)
     {
@@ -70,11 +74,11 @@ namespace InspectorCore
     }
     public static IEnumerable<ProjectEntity> Projects(this IDataModel model)
     {
-      return model.Entites().Select(x => x as ProjectEntity).Where(x => x != null);
+      return model.Entities<ProjectEntity>();
     }
     public static IEnumerable<ProjectEntity> ValidProjects(this IDataModel model)
     {
-      return Projects(model).Where(x => x.Valid);
+      return model.Projects().Where(x => x.Valid);
     }
     public static SolutionEntity FindSolution(this IDataModel model, String path)
     {
@@ -83,6 +87,24 @@ namespace InspectorCore
     public static ProjectEntity FindProject(this IDataModel model, String path)
     {
       return model.FindEntity(path) as ProjectEntity;
+    }
+    public static IEnumerable<LinkType> LinksFrom<LinkType>(this Entity entity) where LinkType : Link
+    {
+      return entity.Model.LinksFrom(entity).Select(x => x as LinkType).Where(x => x != null);
+    }
+    public static IEnumerable<LinkType> LinksTo<LinkType>(this Entity entity) where LinkType : Link
+    {
+      return entity.Model.LinksTo(entity).Select(x => x as LinkType).Where(x => x != null);
+    }
+    public static IEnumerable<EntityType> EntitiesLinkedFrom<LinkType, EntityType>(this Entity entity) 
+      where LinkType : Link where EntityType : Entity
+    {
+      return entity.LinksFrom<LinkType>().Select(x => x.To as EntityType).Where(x => x != null);
+    }
+    public static IEnumerable<EntityType> EntitiesLinkedTo<LinkType, EntityType>(this Entity entity)
+      where LinkType : Link where EntityType : Entity
+    {
+      return entity.LinksTo<LinkType>().Select(x => x.To as EntityType).Where(x => x != null);
     }
   }
 }

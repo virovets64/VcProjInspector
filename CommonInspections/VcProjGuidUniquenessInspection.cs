@@ -19,7 +19,7 @@ namespace CommonInspections
     protected override void run()
     {
       var projectsByGuids = new Dictionary<Guid, VcProjectEntity>();
-      foreach (var project in Model.Projects().Select(x => x as VcProjectEntity).Where(x => x != null && x.Id != null))
+      foreach (var project in Model.Entities<VcProjectEntity>().Where(x => x.Id != null))
       {
         VcProjectEntity anotherProject;
         if (projectsByGuids.TryGetValue(project.Id.Value, out anotherProject))

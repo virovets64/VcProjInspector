@@ -41,12 +41,12 @@ namespace InspectorCore
       return entites.Values;
     }
 
-    public IEnumerable<Link> OutgoingLinks(Entity entity)
+    public IEnumerable<Link> LinksFrom(Entity entity)
     {
       return outgoingLinks[entity];
     }
 
-    public IEnumerable<Link> IngoingLinks(Entity entity)
+    public IEnumerable<Link> LinksTo(Entity entity)
     {
       return ingoingLinks[entity];
     }
@@ -197,7 +197,7 @@ namespace InspectorCore
               {
                 Context.AddDefect(new Defect_SolutiontRefBroken(solution.PathFromBase, refPath));
               }
-              else if (OutgoingLinks(solution).Any(x => x.To == refProject))
+              else if (LinksFrom(solution).Any(x => x.To == refProject))
               {
                 Context.AddDefect(new Defect_SolutionRefDuplicate(solution.PathFromBase, refProject.PathFromBase));
               }
@@ -225,7 +225,7 @@ namespace InspectorCore
           {
             Context.AddDefect(new Defect_ProjectRefBroken(reference.Location, refPath));
           }
-          else if (OutgoingLinks(project).Any(x => x.To == refProject))
+          else if (LinksFrom(project).Any(x => x.To == refProject))
           {
             Context.AddDefect(new Defect_ProjectRefDuplicate(reference.Location, refPath));
           }
