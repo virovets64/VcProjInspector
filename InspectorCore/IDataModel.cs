@@ -35,6 +35,18 @@ namespace InspectorCore
     }
   }
 
+  public class VcProjectEntity : ProjectEntity
+  {
+    public Guid? Id { get; internal set; }
+    public int IdLine { get; internal set; }
+  }
+
+  public class VcProjectReference: Link
+  {
+    public Guid? Id { get; internal set; }
+    public int Line { get; internal set; }
+  }
+
   public interface IDataModel
   {
     IEnumerable<Entity> Entites();

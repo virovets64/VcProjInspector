@@ -61,11 +61,29 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to String {0} is not a valid GUID.
+        /// </summary>
+        internal static string GuidStringInvalid {
+            get {
+                return ResourceManager.GetString("GuidStringInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t load plugin: {0}.
         /// </summary>
         internal static string PluginLoadFailure {
             get {
                 return ResourceManager.GetString("PluginLoadFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project has no ProjectGuid property.
+        /// </summary>
+        internal static string ProjectHasNoGuid {
+            get {
+                return ResourceManager.GetString("ProjectHasNoGuid", resourceCulture);
             }
         }
         
@@ -79,11 +97,47 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project references nonexistent project file {0}.
+        /// </summary>
+        internal static string ProjectRefBroken {
+            get {
+                return ResourceManager.GetString("ProjectRefBroken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project {0} in referenced twice.
+        /// </summary>
+        internal static string ProjectRefDuplicate {
+            get {
+                return ResourceManager.GetString("ProjectRefDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t open solution file: {0}.
         /// </summary>
         internal static string SolutionOpenFailure {
             get {
                 return ResourceManager.GetString("SolutionOpenFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution references nonexistent project file {0}.
+        /// </summary>
+        internal static string SolutionRefBroken {
+            get {
+                return ResourceManager.GetString("SolutionRefBroken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project {0} in referenced twice from solution.
+        /// </summary>
+        internal static string SolutionRefDuplicate {
+            get {
+                return ResourceManager.GetString("SolutionRefDuplicate", resourceCulture);
             }
         }
     }

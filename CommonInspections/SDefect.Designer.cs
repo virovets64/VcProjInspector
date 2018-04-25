@@ -61,15 +61,6 @@ namespace CommonInspections {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to String {0} is not a valid GUID.
-        /// </summary>
-        internal static string GuidStringInvalid {
-            get {
-                return ResourceManager.GetString("GuidStringInvalid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Solution doesn&apos;t contain project {0} which is referenced by project {1}.
         /// </summary>
         internal static string MissingProject {
@@ -93,60 +84,6 @@ namespace CommonInspections {
         internal static string ProjectGuidMismatch {
             get {
                 return ResourceManager.GetString("ProjectGuidMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project has no ProjectGuid property.
-        /// </summary>
-        internal static string ProjectHasNoGuid {
-            get {
-                return ResourceManager.GetString("ProjectHasNoGuid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project references nonexistent project file {0}.
-        /// </summary>
-        internal static string ProjectRefBroken {
-            get {
-                return ResourceManager.GetString("ProjectRefBroken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project {0} in referenced twice.
-        /// </summary>
-        internal static string ProjectRefDuplicate {
-            get {
-                return ResourceManager.GetString("ProjectRefDuplicate", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to GUID {0} in the reference doesn&apos;t match GUID {1} of project {2}.
-        /// </summary>
-        internal static string SolutionGuidMismatch {
-            get {
-                return ResourceManager.GetString("SolutionGuidMismatch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Solution references nonexistent project file {0}.
-        /// </summary>
-        internal static string SolutionRefBroken {
-            get {
-                return ResourceManager.GetString("SolutionRefBroken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Project {0} in referenced twice from solution.
-        /// </summary>
-        internal static string SolutionRefDuplicate {
-            get {
-                return ResourceManager.GetString("SolutionRefDuplicate", resourceCulture);
             }
         }
     }

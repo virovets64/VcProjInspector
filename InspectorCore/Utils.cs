@@ -6,6 +6,8 @@ namespace InspectorCore
 {
   public class Utils
   {
+    private static String[] drives = Directory.GetLogicalDrives();
+
     public static string GetActualFullPath(String path)
     {
       path = Path.GetFullPath(path);
@@ -25,7 +27,5 @@ namespace InspectorCore
     {
       return Path.GetExtension(path).Equals(extension, StringComparison.InvariantCultureIgnoreCase);
     }
-
-    private static String[] drives = Directory.GetLogicalDrives();
   }
 }
