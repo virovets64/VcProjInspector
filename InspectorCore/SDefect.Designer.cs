@@ -61,6 +61,15 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Defects {0} and {1} have the same code {2}.
+        /// </summary>
+        internal static string DefectCodeDuplicate {
+            get {
+                return ResourceManager.GetString("DefectCodeDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to String {0} is not a valid GUID.
         /// </summary>
         internal static string GuidStringInvalid {

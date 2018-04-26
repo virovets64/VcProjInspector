@@ -32,6 +32,14 @@ namespace InspectorCore
       { }
     }
 
+    [DefectClass(Code = "A6", Severity = DefectSeverity.Internal)]
+    private class Defect_CodeDuplicate : Defect
+    {
+      public Defect_CodeDuplicate(Type class1, Type class2, String code) :
+        base(class1.Assembly.Location, 0, String.Format(SDefect.DefectCodeDuplicate, class1.Name, class2.Name, code))
+      { }
+    }
+
     private DataModel model;
     private List<Assembly> plugins = new List<Assembly>();
     private List<Inspection> inspections = new List<Inspection>();
@@ -54,6 +62,28 @@ namespace InspectorCore
             inspection.Context = this;
             inspection.Model = model;
             inspections.Add(inspection);
+          }
+        }
+      }
+    }
+
+    private void checkDefectClasses()
+    {
+      var defectTypes = new Dictionary<String, Type>();
+      Assembly[] thisAssembly = new Assembly[] { Assembly.GetExecutingAssembly() };
+      foreach (var plugin in plugins.Union(thisAssembly))
+      {
+        var types = plugin.GetTypes();
+        foreach (var type in types)
+        {
+          var defectClass = type.GetCustomAttribute<DefectClass>();
+          if (defectClass != null)
+          {
+            Type anotherType;
+            if(defectTypes.TryGetValue(defectClass.Code, out anotherType))
+              AddDefect(new Defect_CodeDuplicate(type, anotherType, defectClass.Code));
+            else
+              defectTypes.Add(defectClass.Code, type);
           }
         }
       }
@@ -141,6 +171,7 @@ namespace InspectorCore
       model = new DataModel(this);
 
       collectInspections();
+      checkDefectClasses();
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
       runInspections();
