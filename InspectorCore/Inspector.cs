@@ -12,8 +12,8 @@ namespace InspectorCore
     [Option('d', "dirs", Required = true, HelpText = "directories to scan.")]
     public IEnumerable<string> IncludeDirectories { get; set; }
 
-    [Option('x', "exclude_dirs", Required = false, HelpText = "directories to exclude.")]
-    public IEnumerable<string> ExcludeDirectories { get; set; }
+    [Option('x', "exclude_files", Required = false, HelpText = "files to exclude (regexp may be used).")]
+    public IEnumerable<string> ExcludeFiles { get; set; }
 
     [Option('o', "output_dir", Default = ".", Required = false, HelpText = "output directory.")]
     public string OutputDirectory { get; set; }

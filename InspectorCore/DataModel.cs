@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.Build.Construction;
 
 namespace InspectorCore
@@ -124,12 +125,23 @@ namespace InspectorCore
 
     private void collectFiles()
     {
+      var excludeFilePatterns = Context.Options.ExcludeFiles
+        .Select(x => new Regex(x, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace))
+        .ToArray();
+
       Context.LogMessage(MessageImportance.Normal, SMessage.CollectingFiles);
       foreach (var dir in Context.Options.IncludeDirectories)
       {
         String fullDirName = Utils.GetActualFullPath(dir);
         foreach (var filename in Directory.GetFiles(fullDirName, "*", SearchOption.AllDirectories))
         {
+          if(excludeFilePatterns.Length > 0)
+          {
+            var relativeName = Context.RemoveBase(filename);
+            if (excludeFilePatterns.Any(x => x.IsMatch(relativeName)))
+              continue;
+          }
+
           if (Utils.FileExtensionIs(filename, ".sln"))
             addSolution(filename);
           else if (Utils.FileExtensionIs(filename, ".vcxproj"))
@@ -155,7 +167,7 @@ namespace InspectorCore
 
     private void addVcProject(string filename)
     {
-      var projectEntity = new VcProjectEntity { FullPath = filename, PathFromBase = Context.RemoveBase(filename)};
+      var projectEntity = new VcProjectEntity { FullPath = filename, PathFromBase = Context.RemoveBase(filename) };
 
       Context.LogMessage(MessageImportance.Low, SMessage.OpeningProject, filename);
 
@@ -233,7 +245,7 @@ namespace InspectorCore
           {
             var link = new VcProjectReference { From = project, To = refProject };
             var refGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
-            if(refGuidElement != null)
+            if (refGuidElement != null)
             {
               link.Id = parseGuid(refGuidElement.Value, project.PathFromBase, refGuidElement.Location.Line);
               link.Line = refGuidElement.Location.Line;
