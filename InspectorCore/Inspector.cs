@@ -178,8 +178,8 @@ namespace InspectorCore
 
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Plugins loaded: ", plugins.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Inspections run: ", inspections.Count);
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", model.ValidSolutions().Count());
-      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", model.ValidProjects().Count());
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Solutions opened: ", model.Entities<SolutionEntity>().Where(x => x.Valid));
+      LogMessage(MessageImportance.Normal, SMessage.NameValue, "Projects opened: ", model.Entities<VcProjectEntity>().Where(x => x.Valid).Count());
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Defects found: ", defects.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Errors: ", defects.Count(x => x.Severity != DefectSeverity.Error));
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));

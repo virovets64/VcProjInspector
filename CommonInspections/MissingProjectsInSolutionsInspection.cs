@@ -19,7 +19,7 @@ namespace CommonInspections
 
     protected override void run()
     {
-      foreach (var solution in Model.ValidSolutions())
+      foreach (var solution in Model.Entities<SolutionEntity>().Where(x => x.Valid))
         foreach (var project in solution.EntitiesLinkedFrom<VcProjectReference, VcProjectEntity>().Where(x => x.Valid))
           foreach (var referencedProject in project.EntitiesLinkedFrom<VcProjectReference, VcProjectEntity>().Where(x => x.Valid))
             if (!solution.LinksFrom<VcProjectReference>().Any(x => x.To == referencedProject))

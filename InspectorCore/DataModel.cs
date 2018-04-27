@@ -195,7 +195,7 @@ namespace InspectorCore
 
     private void retrieveSolutionRefs()
     {
-      foreach (var solution in this.ValidSolutions())
+      foreach (var solution in this.Entities<SolutionEntity>().Where(x => x.Valid))
       {
         foreach (var projectInSolution in solution.Solution.ProjectsInOrder)
         {
@@ -204,7 +204,7 @@ namespace InspectorCore
             var refPath = projectInSolution.AbsolutePath;
             if (Utils.FileExtensionIs(refPath, ".vcxproj"))
             {
-              var refProject = this.FindProject(refPath);
+              var refProject = this.FindEntity<VcProjectEntity>(refPath);
               if (refProject == null)
               {
                 Context.AddDefect(new Defect_SolutiontRefBroken(solution.PathFromBase, refPath));
@@ -227,12 +227,12 @@ namespace InspectorCore
 
     private void retrieveProjectRefs()
     {
-      foreach (var project in this.ValidProjects())
+      foreach (var project in this.Entities<VcProjectEntity>().Where(x => x.Valid))
       {
         foreach (var reference in project.Root.Items.Where(x => x.ItemType == "ProjectReference"))
         {
           var refPath = Path.GetFullPath(Path.Combine(project.Root.DirectoryPath, reference.Include));
-          var refProject = this.FindProject(refPath);
+          var refProject = this.FindEntity<VcProjectEntity>(refPath);
           if (refProject == null)
           {
             Context.AddDefect(new Defect_ProjectRefBroken(reference.Location, refPath));

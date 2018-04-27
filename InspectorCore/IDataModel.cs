@@ -64,29 +64,9 @@ namespace InspectorCore
     {
       return model.Entites().Select(x => x as EntityType).Where(x => x != null);
     }
-    public static IEnumerable<SolutionEntity> Solutions(this IDataModel model)
+    public static EntityType FindEntity<EntityType>(this IDataModel model, String path) where EntityType : Entity
     {
-      return model.Entities<SolutionEntity>();
-    }
-    public static IEnumerable<SolutionEntity> ValidSolutions(this IDataModel model)
-    {
-      return Solutions(model).Where(x => x.Valid);
-    }
-    public static IEnumerable<ProjectEntity> Projects(this IDataModel model)
-    {
-      return model.Entities<ProjectEntity>();
-    }
-    public static IEnumerable<ProjectEntity> ValidProjects(this IDataModel model)
-    {
-      return model.Projects().Where(x => x.Valid);
-    }
-    public static SolutionEntity FindSolution(this IDataModel model, String path)
-    {
-      return model.FindEntity(path) as SolutionEntity;
-    }
-    public static ProjectEntity FindProject(this IDataModel model, String path)
-    {
-      return model.FindEntity(path) as ProjectEntity;
+      return model.FindEntity(path) as EntityType;
     }
     public static IEnumerable<LinkType> LinksFrom<LinkType>(this Entity entity) where LinkType : Link
     {
