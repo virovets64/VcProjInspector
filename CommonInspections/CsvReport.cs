@@ -21,8 +21,16 @@ namespace CommonInspections
 
       new Report<VcProjectEntity>()
         .AddField("Filename", x => x.PathFromBase)
+        .AddField("Id", x => x.Id.ToString())
         .SetRecords(Model.Entities<VcProjectEntity>().Where(x => x.Valid))
         .Write("Project.csv", Context);
+
+      new Report<VcProjectReference>()
+        .AddField("Source", x => x.From.PathFromBase)
+        .AddField("SourceType", x => x.From.TypeName)
+        .AddField("Target", x => x.To.PathFromBase)
+        .SetRecords(Model.Entities<VcProjectEntity>().SelectMany(x => x.LinksTo<VcProjectReference>()))
+        .Write("ProjectRef.csv", Context);
 
       new Report<ProjectPropertyElement>()
         .AddField("Project", x => Context.RemoveBase(x.ContainingProject.FullPath))

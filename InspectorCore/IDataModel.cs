@@ -4,11 +4,12 @@ using System.Linq;
 
 namespace InspectorCore
 {
-  public class Entity
+  public abstract class Entity
   {
     public IDataModel Model { get; internal set; }
     public String FullPath { get; internal set; }
     public String PathFromBase { get; internal set; }
+    public abstract String TypeName { get; }
   }
 
   public class Link
@@ -24,9 +25,10 @@ namespace InspectorCore
     {
       get { return Solution != null; }
     }
+    public override String TypeName { get { return "Solution"; } }
   }
 
-  public class ProjectEntity: Entity
+  public abstract class ProjectEntity: Entity
   {
     public Microsoft.Build.Construction.ProjectRootElement Root { get; internal set; }
     public bool Valid
@@ -39,6 +41,7 @@ namespace InspectorCore
   {
     public Guid? Id { get; internal set; }
     public int IdLine { get; internal set; }
+    public override String TypeName { get { return "VcProject"; } }
   }
 
   public class VcProjectReference: Link
