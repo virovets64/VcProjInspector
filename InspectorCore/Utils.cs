@@ -10,7 +10,7 @@ namespace InspectorCore
 
     public static string GetActualFullPath(String path)
     {
-      path = Path.GetFullPath(path);
+      path = RemoveTrailigSlash(path);
       var dir = Path.GetDirectoryName(path);
       if (String.IsNullOrEmpty(dir))
       {
@@ -22,6 +22,14 @@ namespace InspectorCore
         return Directory.GetFileSystemEntries(GetActualFullPath(dir), Path.GetFileName(path)).First();
       }
     }
+
+    public static string RemoveTrailigSlash(String path)
+    {
+      if (Path.GetDirectoryName(path) != null)
+        path = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+      return path;
+    }
+
 
     public static bool FileExtensionIs(String path, String extension)
     {
