@@ -86,5 +86,14 @@ namespace CommonInspections {
                 return ResourceManager.GetString("ProjectGuidMismatch", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Project is not references by any solution.
+        /// </summary>
+        internal static string ProjectIsOrphan {
+            get {
+                return ResourceManager.GetString("ProjectIsOrphan", resourceCulture);
+            }
+        }
     }
 }

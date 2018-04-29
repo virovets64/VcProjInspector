@@ -75,7 +75,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B1", Severity = DefectSeverity.Warning)]
+    [DefectClass(Code = "A4", Severity = DefectSeverity.Warning)]
     private class Defect_ProjectHasNoGuid : Defect
     {
       public Defect_ProjectHasNoGuid(String filename) :
@@ -83,7 +83,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B3", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "A5", Severity = DefectSeverity.Error)]
     private class Defect_ProjectRefBroken : Defect
     {
       public Defect_ProjectRefBroken(ElementLocation location, String targetProject) :
@@ -91,7 +91,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B4", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "A6", Severity = DefectSeverity.Error)]
     private class Defect_ProjectRefDuplicate : Defect
     {
       public Defect_ProjectRefDuplicate(ElementLocation location, String targetProject) :
@@ -99,7 +99,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B6", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "A7", Severity = DefectSeverity.Error)]
     private class Defect_SolutiontRefBroken : Defect
     {
       public Defect_SolutiontRefBroken(String filename, String targetProject) :
@@ -107,7 +107,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B7", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "A8", Severity = DefectSeverity.Error)]
     private class Defect_SolutionRefDuplicate : Defect
     {
       public Defect_SolutionRefDuplicate(String filename, String targetProject) :
@@ -115,7 +115,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "B9", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "A9", Severity = DefectSeverity.Error)]
     private class Defect_GuidStringInvalid : Defect
     {
       public Defect_GuidStringInvalid(String filename, int line, String guid) :

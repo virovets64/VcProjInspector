@@ -126,4 +126,7 @@
   <data name="ProjectGuidMismatch" xml:space="preserve">
     <value>GUID {0} in the reference doesn't match GUID {1} of project {2}</value>
   </data>
+  <data name="ProjectIsOrphan" xml:space="preserve">
+    <value>Project is not references by any solution</value>
+  </data>
 </root>

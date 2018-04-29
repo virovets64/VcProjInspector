@@ -32,7 +32,7 @@ namespace InspectorCore
       { }
     }
 
-    [DefectClass(Code = "A6", Severity = DefectSeverity.Internal)]
+    [DefectClass(Code = "A11", Severity = DefectSeverity.Internal)]
     private class Defect_CodeDuplicate : Defect
     {
       public Defect_CodeDuplicate(Type class1, Type class2, String code) :

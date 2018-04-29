@@ -8,7 +8,7 @@ namespace CommonInspections
   [InspectionClass]
   class VcProjGuidUniquenessInspection: Inspection
   {
-    [DefectClass(Code = "B2", Severity = DefectSeverity.Warning)]
+    [DefectClass(Code = "B4", Severity = DefectSeverity.Warning)]
     private class Defect_ProjectGuidIsDuplicated : Defect
     {
       public Defect_ProjectGuidIsDuplicated(String filename, int line, String targetProject, Guid guid) :

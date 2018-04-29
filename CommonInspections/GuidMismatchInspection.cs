@@ -6,7 +6,7 @@ namespace CommonInspections
   [InspectionClass]
   class GuidMismatchInspection : Inspection
   {
-    [DefectClass(Code = "B5", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "B1", Severity = DefectSeverity.Warning)]
     private class Defect_ProjectGuidMismatch : Defect
     {
       public Defect_ProjectGuidMismatch(String filename, int line, String targetProject, Guid? refGuid, Guid? targetGuid) :

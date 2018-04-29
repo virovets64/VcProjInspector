@@ -9,7 +9,7 @@ namespace CommonInspections
   [InspectionClass]
   class MissingProjectsInSolutionsInspection : Inspection
   {
-    [DefectClass(Code = "B10", Severity = DefectSeverity.Error)]
+    [DefectClass(Code = "B2", Severity = DefectSeverity.Error)]
     private class Defect_MissingProject : Defect
     {
       public Defect_MissingProject(String filename, String srcProj, String dstProj) :
