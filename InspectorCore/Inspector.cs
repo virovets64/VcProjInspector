@@ -20,6 +20,15 @@ namespace InspectorCore
 
     [Option('b', "base_dir", Default = "", Required = false, HelpText = "base directory.")]
     public string BaseDirectory { get; set; }
+
+    [Option("vs_dir", Default = "", Required = false, HelpText = "Visual Studio directory.")]
+    public string VSDirectory { get; set; }
+
+    [Option("msbuild_dir", Default = "", Required = false, HelpText = "MSBuild directory.")]
+    public string MSBuildDirectory { get; set; }
+
+    [Option("tools_version", Default = "15.0", Required = false, HelpText = "Tools version.")]
+    public string ToolsVersion { get; set; }
   }
 
   public class Inspector : IContext, IDisposable

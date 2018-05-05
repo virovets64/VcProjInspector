@@ -29,6 +29,7 @@ namespace CommonInspections
         .AddField("Source", x => x.From.PathFromBase)
         .AddField("SourceType", x => x.From.TypeName)
         .AddField("Target", x => x.To.PathFromBase)
+        .AddField("Line", x => x.Line.ToString())
         .SetRecords(Model.Entities<VcProjectEntity>().SelectMany(x => x.LinksTo<VcProjectReference>()))
         .Write("ProjectRef.csv", Context);
 
@@ -36,10 +37,19 @@ namespace CommonInspections
         .AddField("Project", x => Context.RemoveBase(x.ContainingProject.FullPath))
         .AddField("Name", x => x.Name)
         .AddField("Label", x => x.Parent.Label)
+        .AddField("Line", x => x.Location.Line.ToString())
         .AddField("Condition", x => x.Parent.Condition)
         .AddField("Value", x => x.Value)
         .SetRecords(Model.Entities<VcProjectEntity>().Where(x => x.Valid).SelectMany(x => x.Root.Properties))
         .Write("Property.csv", Context);
+
+      new Report<ImportLink>()
+        .AddField("Project", x => x.From.PathFromBase)
+        .AddField("Imports", x => x.To.PathFromBase)
+        .AddField("Label", x => x.Label)
+        .AddField("Line", x => x.Line.ToString())
+        .SetRecords(Model.Entities<ProjectEntity>().SelectMany(x => x.LinksFrom<ImportLink>()))
+        .Write("Import.csv", Context);
     }
 
 

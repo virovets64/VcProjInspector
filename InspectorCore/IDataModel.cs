@@ -35,6 +35,7 @@ namespace InspectorCore
     {
       get { return Root != null; }
     }
+    public Microsoft.Build.Evaluation.Project EvaluatedProject { get; internal set; }
   }
 
   public class VcProjectEntity : ProjectEntity
@@ -44,9 +45,20 @@ namespace InspectorCore
     public override String TypeName { get { return "VcProject"; } }
   }
 
+  public class ImportedProjectEntity : ProjectEntity
+  {
+    public override String TypeName { get { return "ImportedProject"; } }
+  }
+
   public class VcProjectReference: Link
   {
     public Guid? Id { get; internal set; }
+    public int Line { get; internal set; }
+  }
+
+  public class ImportLink : Link
+  {
+    public String Label { get; internal set; }
     public int Line { get; internal set; }
   }
 

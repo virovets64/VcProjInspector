@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Construction;
+using Microsoft.Build.Evaluation;
 
 namespace InspectorCore
 {
@@ -16,12 +17,17 @@ namespace InspectorCore
       collectFiles();
       retrieveSolutionRefs();
       retrieveProjectRefs();
+      evaluateProjects();
+      collectImportedProjects();
     }
 
     private Dictionary<String, Entity> entites = new Dictionary<string, Entity>(StringComparer.InvariantCultureIgnoreCase);
     private Dictionary<Entity, List<Link>> outgoingLinks = new Dictionary<Entity, List<Link>>();
     private Dictionary<Entity, List<Link>> ingoingLinks = new Dictionary<Entity, List<Link>>();
     private IContext Context { get; }
+
+    private Dictionary<String, String> globalProperties;
+    private ProjectCollection projectCollection;
 
     public void AddEntity(Entity entity)
     {
@@ -123,6 +129,14 @@ namespace InspectorCore
       { }
     }
 
+    [DefectClass(Code = "A10", Severity = DefectSeverity.Error)]
+    private class Defect_ProjectEvaluationFailure : Defect
+    {
+      public Defect_ProjectEvaluationFailure(String filename, String reason) :
+        base(filename, 0, String.Format(SDefect.ProjectEvaluationFailure, reason))
+      { }
+    }
+
     private void collectFiles()
     {
       var excludeFilePatterns = Context.Options.ExcludeFiles
@@ -135,7 +149,7 @@ namespace InspectorCore
         String fullDirName = Utils.GetActualFullPath(dir);
         foreach (var filename in Directory.GetFiles(fullDirName, "*", SearchOption.AllDirectories))
         {
-          if(excludeFilePatterns.Length > 0)
+          if (excludeFilePatterns.Length > 0)
           {
             var relativeName = Context.RemoveBase(filename);
             if (excludeFilePatterns.Any(x => x.IsMatch(relativeName)))
@@ -169,25 +183,17 @@ namespace InspectorCore
     {
       var projectEntity = new VcProjectEntity { FullPath = filename, PathFromBase = Context.RemoveBase(filename) };
 
-      Context.LogMessage(MessageImportance.Low, SMessage.OpeningProject, filename);
+      projectEntity.Root = openProject(filename);
 
-      try
+      var guidProperty = projectEntity.Root.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
+      if (guidProperty == null)
       {
-        projectEntity.Root = ProjectRootElement.Open(filename);
-        var guidProperty = projectEntity.Root.Properties.FirstOrDefault(x => x.Name == "ProjectGuid");
-        if (guidProperty == null)
-        {
-          Context.AddDefect(new Defect_ProjectHasNoGuid(projectEntity.PathFromBase));
-        }
-        else
-        {
-          projectEntity.Id = parseGuid(guidProperty.Value, projectEntity.PathFromBase, guidProperty.Location.Line);
-          projectEntity.IdLine = guidProperty.Location.Line;
-        }
+        Context.AddDefect(new Defect_ProjectHasNoGuid(projectEntity.PathFromBase));
       }
-      catch (Exception e)
+      else
       {
-        Context.AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
+        projectEntity.Id = parseGuid(guidProperty.Value, projectEntity.PathFromBase, guidProperty.Location.Line);
+        projectEntity.IdLine = guidProperty.Location.Line;
       }
 
       AddEntity(projectEntity);
@@ -256,6 +262,108 @@ namespace InspectorCore
       }
     }
 
+    private void evaluateProjects()
+    {
+      globalProperties = new Dictionary<String, String>();
+      String vsDirectory = Context.Options.VSDirectory;
+      if (String.IsNullOrEmpty(vsDirectory))
+        vsDirectory = Environment.GetEnvironmentVariable("VSINSTALLDIR");
+      if (String.IsNullOrEmpty(vsDirectory))
+        throw new ArgumentException("Visual Studio directory is not specified");
+      String msBuildDirectory = Context.Options.MSBuildDirectory;
+      if (String.IsNullOrEmpty(msBuildDirectory))
+        msBuildDirectory = Path.Combine(vsDirectory, "MSBuild");
+
+      globalProperties.Add("VCTargetsPath", Path.Combine(vsDirectory, "Common7", "IDE", "VC", "VCTargets"));
+      globalProperties.Add("MSBuildExtensionsPath", msBuildDirectory);
+
+      var toolsVersion = Context.Options.ToolsVersion;
+      projectCollection = new ProjectCollection();
+      var toolset = new Toolset(toolsVersion, Path.Combine(msBuildDirectory, toolsVersion, "Bin"), projectCollection, string.Empty);
+      projectCollection.AddToolset(toolset);
+
+      foreach (var projectEntity in this.Entities<VcProjectEntity>().Where(x => x.Valid))
+      {
+        projectEntity.EvaluatedProject = evaluateProject(projectEntity.Root);
+      }
+    }
+
+    private ProjectRootElement openProject(string filename)
+    {
+      Context.LogMessage(MessageImportance.Low, SMessage.OpeningProject, filename);
+      try
+      {
+        return ProjectRootElement.Open(filename);
+      }
+      catch (Exception e)
+      {
+        Context.AddDefect(new Defect_ProjectOpenFailure(filename, e.Message));
+      }
+      return null;
+    }
+
+
+    private Project evaluateProject(ProjectRootElement root)
+    {
+      try
+      {
+        return new Project(root, globalProperties, "15.0", projectCollection);
+      }
+      catch (Exception e)
+      {
+        Context.AddDefect(new Defect_ProjectEvaluationFailure(Context.RemoveBase(root.FullPath), e.Message));
+      }
+      return null;
+    }
+
+    private void collectImportedProjects()
+    {
+      foreach (var projectEntity in this.Entities<ProjectEntity>().Where(x => x.EvaluatedProject != null).ToArray())
+      {
+        collectImportedProjects(projectEntity);
+      }
+    }
+
+    private void collectImportedProjects(ProjectEntity projectEntity)
+    {
+      foreach (var import in projectEntity.EvaluatedProject.Imports)
+      {
+        var pathTo = import.ImportedProject.FullPath;
+        var pathFrom = import.ImportingElement.ContainingProject.FullPath;
+
+        var entityTo = FindEntity(pathTo);
+        if (entityTo == null)
+        {
+          entityTo = new ImportedProjectEntity
+          {
+            FullPath = pathTo,
+            PathFromBase = Context.RemoveBase(pathTo),
+            Root = import.ImportedProject
+          };
+          AddEntity(entityTo);
+        }
+
+        var entityFrom = FindEntity(pathFrom);
+        if (entityFrom == null)
+        {
+          entityFrom = new ImportedProjectEntity
+          {
+            FullPath = pathFrom,
+            PathFromBase = Context.RemoveBase(pathFrom),
+            Root = import.ImportingElement.ContainingProject
+          };
+          AddEntity(entityFrom);
+        }
+
+        AddLink(new ImportLink
+        {
+          From = entityFrom,
+          To = entityTo,
+          Label = import.ImportingElement.Label,
+          Line = import.ImportingElement.Location.Line
+        });
+      }
+    }
 
     private Guid? parseGuid(String input, String sourceFile, int line = 0)
     {

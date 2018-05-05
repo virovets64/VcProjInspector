@@ -126,6 +126,9 @@
   <data name="PluginLoadFailure" xml:space="preserve">
     <value>Can't load plugin: {0}</value>
   </data>
+  <data name="ProjectEvaluationFailure" xml:space="preserve">
+    <value>Can't evaluate project: {0}</value>
+  </data>
   <data name="ProjectHasNoGuid" xml:space="preserve">
     <value>Project has no ProjectGuid property</value>
   </data>

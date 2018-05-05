@@ -88,6 +88,15 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t evaluate project: {0}.
+        /// </summary>
+        internal static string ProjectEvaluationFailure {
+            get {
+                return ResourceManager.GetString("ProjectEvaluationFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Project has no ProjectGuid property.
         /// </summary>
         internal static string ProjectHasNoGuid {
