@@ -123,6 +123,9 @@
   <data name="CreatingInspection" xml:space="preserve">
     <value>Creating inspection {0}...</value>
   </data>
+  <data name="FixingDefects" xml:space="preserve">
+    <value>Fixing defects...</value>
+  </data>
   <data name="LoadingInspections" xml:space="preserve">
     <value>Loading inspections...</value>
   </data>
@@ -134,6 +137,9 @@
   </data>
   <data name="NameValue" xml:space="preserve">
     <value>{0}: {1}</value>
+  </data>
+  <data name="NumberOfFixedDefects" xml:space="preserve">
+    <value>{0} defects fixed</value>
   </data>
   <data name="OpeningProject" xml:space="preserve">
     <value>Opening project {0}...</value>

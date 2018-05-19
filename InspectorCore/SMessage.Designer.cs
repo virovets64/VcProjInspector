@@ -79,6 +79,15 @@ namespace InspectorCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fixing defects....
+        /// </summary>
+        internal static string FixingDefects {
+            get {
+                return ResourceManager.GetString("FixingDefects", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Loading inspections....
         /// </summary>
         internal static string LoadingInspections {
@@ -111,6 +120,15 @@ namespace InspectorCore {
         internal static string NameValue {
             get {
                 return ResourceManager.GetString("NameValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} defects fixed.
+        /// </summary>
+        internal static string NumberOfFixedDefects {
+            get {
+                return ResourceManager.GetString("NumberOfFixedDefects", resourceCulture);
             }
         }
         

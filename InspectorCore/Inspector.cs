@@ -29,6 +29,9 @@ namespace InspectorCore
 
     [Option("tools_version", Default = "15.0", Required = false, HelpText = "Tools version.")]
     public string ToolsVersion { get; set; }
+
+    [Option(Default = false, Required = false, HelpText = "Automatically fix defects.")]
+    public bool Fix { get; set; }
   }
 
   public class Inspector : IContext, IDisposable
@@ -105,6 +108,29 @@ namespace InspectorCore
         LogMessage(MessageImportance.Low, SMessage.RunningInspection, inspection.GetType().Name);
         inspection.Inspect();
       }
+    }
+
+    private int fixDefects()
+    {
+      int fixCount = 0;
+      if (Options.Fix)
+      {
+        LogMessage(MessageImportance.High, SMessage.FixingDefects);
+        foreach (var defect in defects.Where(x => x.Fix != null))
+        {
+          defect.Fix();
+          fixCount++;
+        }
+        if (fixCount != 0)
+        {
+          LogMessage(MessageImportance.High, SMessage.NumberOfFixedDefects, fixCount);
+          foreach (var entity in model.Entities<ProjectEntity>())
+          {
+            entity.Root.Save();
+          }
+        }
+      }
+      return fixCount;
     }
 
     private void loadPlugins()
@@ -192,6 +218,8 @@ namespace InspectorCore
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Defects found: ", defects.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Errors: ", defects.Count(x => x.Severity != DefectSeverity.Error));
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));
+
+      fixDefects();
     }
 
     public void Dispose()

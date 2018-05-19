@@ -9,7 +9,7 @@ namespace InspectorCore
 
   public class Defect
   {
-    public Defect(String filename, int line, String description)
+    public Defect(String filename, int line, String description, Action fix = null)
     {
       Filename = filename;
       Line = line;
@@ -17,6 +17,7 @@ namespace InspectorCore
       var defectClass = GetType().GetCustomAttribute(typeof(DefectClass)) as DefectClass;
       Severity = defectClass.Severity;
       Code = defectClass.Code;
+      Fix = fix;
     }
 
     public String Filename { get; } = "";
@@ -24,6 +25,7 @@ namespace InspectorCore
     public String Description { get; } = "";
     public DefectSeverity Severity { get; }
     public String Code { get; }
+    public Action Fix { get; protected set; }
 
     public override String ToString()
     {
