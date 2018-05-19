@@ -40,7 +40,7 @@ namespace InspectorCore
 
   public class VcProjectEntity : ProjectEntity
   {
-    public Guid? Id { get; internal set; }
+    public String Id { get; internal set; }
     public int IdLine { get; internal set; }
     public override String TypeName { get { return "VcProject"; } }
   }
@@ -52,7 +52,7 @@ namespace InspectorCore
 
   public class VcProjectReference: Link
   {
-    public Guid? Id { get; internal set; }
+    public String Id { get; internal set; }
     public int Line { get; internal set; }
   }
 

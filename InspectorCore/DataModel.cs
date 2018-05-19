@@ -192,7 +192,8 @@ namespace InspectorCore
       }
       else
       {
-        projectEntity.Id = parseGuid(guidProperty.Value, projectEntity.PathFromBase, guidProperty.Location.Line);
+        validateGuid(guidProperty.Value, projectEntity.PathFromBase, guidProperty.Location.Line);
+        projectEntity.Id = guidProperty.Value.Trim();
         projectEntity.IdLine = guidProperty.Location.Line;
       }
 
@@ -221,8 +222,9 @@ namespace InspectorCore
               }
               else
               {
+                validateGuid(projectInSolution.ProjectGuid, solution.PathFromBase);
                 var link = new VcProjectReference { From = solution, To = refProject };
-                link.Id = parseGuid(projectInSolution.ProjectGuid, solution.PathFromBase);
+                link.Id = projectInSolution.ProjectGuid;
                 AddLink(link);
               }
             }
@@ -253,7 +255,8 @@ namespace InspectorCore
             var refGuidElement = reference.Metadata.FirstOrDefault(x => x.Name == "Project");
             if (refGuidElement != null)
             {
-              link.Id = parseGuid(refGuidElement.Value, project.PathFromBase, refGuidElement.Location.Line);
+              validateGuid(refGuidElement.Value, project.PathFromBase, refGuidElement.Location.Line);
+              link.Id = refGuidElement.Value.Trim();
               link.Line = refGuidElement.Location.Line;
             }
             AddLink(link);
@@ -365,13 +368,11 @@ namespace InspectorCore
       }
     }
 
-    private Guid? parseGuid(String input, String sourceFile, int line = 0)
+    private void validateGuid(String input, String sourceFile, int line = 0)
     {
-      Guid result;
-      if (Guid.TryParse(input, out result))
-        return result;
-      Context.AddDefect(new Defect_GuidStringInvalid(sourceFile, line, input));
-      return null;
+      Guid guid;
+      if(!Guid.TryParse(input, out guid))
+       Context.AddDefect(new Defect_GuidStringInvalid(sourceFile, line, input));
     }
   }
 }

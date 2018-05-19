@@ -15,25 +15,25 @@ namespace CommonInspections
         base(reference.From.PathFromBase, reference.Line, String.Format(SDefect.ProjectGuidMismatch, reference.Id, project.Id, project.PathFromBase))
       {
         var srcEntity = reference.From as VcProjectEntity;
-        if(srcEntity != null && project.Id != null)
+        if(srcEntity != null && !String.IsNullOrEmpty(project.Id))
         {
           guidProperty = srcEntity.Root.Properties.First(x => x.Name == "ProjectGuid");
-          targetGuid = project.Id.Value;
+          targetGuid = project.Id;
           Fix = () =>
           {
-            guidProperty.Value = targetGuid.ToString();
+            guidProperty.Value = targetGuid;
           };
         }
       }
       private ProjectPropertyElement guidProperty;
-      private Guid targetGuid;
+      private String targetGuid;
     }
 
     protected override void run()
     {
       foreach (var project in Model.Entities<VcProjectEntity>())
         foreach (var reference in project.LinksTo<VcProjectReference>())
-          if (reference.Id != project.Id)
+          if (!reference.Id.Equals(project.Id, StringComparison.InvariantCultureIgnoreCase))
             Context.AddDefect(new Defect_ProjectGuidMismatch(project, reference));
     }
   }
