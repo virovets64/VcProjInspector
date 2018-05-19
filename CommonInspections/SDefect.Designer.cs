@@ -61,6 +61,15 @@ namespace CommonInspections {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project item file {0} doesn&apos;t exist.
+        /// </summary>
+        internal static string ItemNotFound {
+            get {
+                return ResourceManager.GetString("ItemNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Solution doesn&apos;t contain project {0} which is referenced by project {1}.
         /// </summary>
         internal static string MissingProject {
