@@ -18,7 +18,7 @@ namespace CommonInspections
       {
         Fix = () =>
         {
-          project.Root.Items.Remove(item);
+          item.Parent.RemoveChild(item);
         };
       }
    }
