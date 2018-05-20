@@ -116,10 +116,10 @@ namespace InspectorCore
       if (Options.Fix)
       {
         LogMessage(MessageImportance.High, SMessage.FixingDefects);
-        foreach (var defect in defects.Where(x => x.Fix != null))
+        foreach (var defect in defects)
         {
-          defect.Fix();
-          fixCount++;
+          if(defect.tryToFix())
+            fixCount++;
         }
         if (fixCount != 0)
         {

@@ -6,6 +6,7 @@ using System.Text;
 namespace InspectorCore
 {
   public enum DefectSeverity { Warning, Error, Internal };
+  public enum DefectState { Found, Fixed, FailedToFix };
 
   public class Defect
   {
@@ -25,7 +26,9 @@ namespace InspectorCore
     public String Description { get; } = "";
     public DefectSeverity Severity { get; }
     public String Code { get; }
-    public Action Fix { get; protected set; }
+    protected Action Fix { get; set; }
+    public DefectState State { get; private set; } = DefectState.Found;
+    public String FixError { get; private set; } = "";
 
     public override String ToString()
     {
@@ -43,6 +46,24 @@ namespace InspectorCore
       sb.Append(": ");
       sb.Append(Description);
       return sb.ToString();
+    }
+
+    public bool tryToFix()
+    {
+      if(Fix != null && State == DefectState.Found)
+      {
+        try
+        {
+          Fix();
+          State = DefectState.Fixed;
+        }
+        catch (Exception e)
+        {
+          State = DefectState.FailedToFix;
+          FixError = e.Message;
+        }
+      }
+      return State == DefectState.Fixed;
     }
 
     static Dictionary<DefectSeverity, String> severityStrings = new Dictionary<DefectSeverity, string>
