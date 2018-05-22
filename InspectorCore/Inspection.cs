@@ -15,8 +15,15 @@ namespace InspectorCore
     }
   }
 
+  public enum InspectionKind
+  {
+    Test,
+    Report
+  }
+
   [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
   public class InspectionClass : Attribute
   {
+    public InspectionKind Kind { get; set; } = InspectionKind.Test;
   }
 }

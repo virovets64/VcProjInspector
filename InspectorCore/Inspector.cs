@@ -54,7 +54,7 @@ namespace InspectorCore
 
     private DataModel model;
     private List<Assembly> plugins = new List<Assembly>();
-    private List<Inspection> inspections = new List<Inspection>();
+    private SortedDictionary<InspectionKind, List<Inspection>> inspections = new SortedDictionary<InspectionKind, List<Inspection>>();
     private List<Defect> defects = new List<Defect>();
     private List<ILogger> loggers = new List<ILogger>();
     private InspectorOptions options;
@@ -70,10 +70,12 @@ namespace InspectorCore
           if (attribute != null)
           {
             LogMessage(MessageImportance.Low, SMessage.CreatingInspection, type.Name);
+            if (!inspections.ContainsKey(attribute.Kind))
+              inspections.Add(attribute.Kind, new List<Inspection>());
             var inspection = (Inspection)Activator.CreateInstance(type);
             inspection.Context = this;
             inspection.Model = model;
-            inspections.Add(inspection);
+            inspections[attribute.Kind].Add(inspection);
           }
         }
       }
@@ -101,9 +103,9 @@ namespace InspectorCore
       }
     }
 
-    private void runInspections()
+    private void runInspections(InspectionKind kind)
     {
-      foreach (var inspection in inspections)
+      foreach (var inspection in inspections[kind])
       {
         LogMessage(MessageImportance.Low, SMessage.RunningInspection, inspection.GetType().Name);
         inspection.Inspect();
@@ -209,7 +211,7 @@ namespace InspectorCore
       checkDefectClasses();
 
       LogMessage(MessageImportance.High, SMessage.RunningInspections);
-      runInspections();
+      runInspections(InspectionKind.Test);
 
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Plugins loaded: ", plugins.Count);
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "Inspections run: ", inspections.Count);
@@ -220,6 +222,7 @@ namespace InspectorCore
       LogMessage(MessageImportance.Normal, SMessage.NameValue, "  Warnings: ", defects.Count(x => x.Severity != DefectSeverity.Warning));
 
       fixDefects();
+      runInspections(InspectionKind.Report);
     }
 
     public void Dispose()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace InspectorCore
 {
@@ -16,5 +17,6 @@ namespace InspectorCore
     void AddDefect(Defect defect);
     void LogMessage(MessageImportance importance, String format, params object[] args);
     String RemoveBase(String path);
+    IReadOnlyCollection<Defect> Defects { get; }
   }
 }
